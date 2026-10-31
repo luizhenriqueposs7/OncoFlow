@@ -20,7 +20,7 @@ import { PaginaPendencias } from './components/PaginaPendencias';
 import { InternoView } from './components/InternoView';
 
 const CHAVE_USUARIO = 'oncoflow-pro-usuario';
-const INSTITUICAO = 'Centro de Oncologia Fictício';
+const INSTITUICAO = 'Fictional Oncology Center';
 
 function lerUsuarioSalvo(): string | null {
   try {
@@ -101,7 +101,7 @@ export default function App() {
     window.scrollTo({ top: 0 });
   };
   if (!usuarioLogado) {
-    if (erroLogin) return <main className="work-empty"><h1>Não foi possível carregar os perfis.</h1><p>Confira sua conexão e tente novamente.</p><button type="button" className="work-primary" onClick={() => window.location.reload()}>Tentar novamente</button></main>;
+    if (erroLogin) return <main className="work-empty"><h1>We could not load the profiles.</h1><p>Check your connection and try again.</p><button type="button" className="work-primary" onClick={() => window.location.reload()}>Try again</button></main>;
     return <LoginView usuarios={usuarios} onLogin={entrar} />;
   }
 
@@ -113,7 +113,7 @@ export default function App() {
           selecionadoId={selecionado?.id}
           onSelecionar={setPacienteSelecionadoId}
           onVerTodos={limite ? () => navegar('pacientes') : undefined}
-          titulo={limite ? 'Pacientes em acompanhamento' : `Pacientes (${filtrados.length})`}
+          titulo={limite ? 'Patients under follow-up' : `Patients (${filtrados.length})`}
         />
       </div>
       <div className="xl:col-span-7">
@@ -126,7 +126,7 @@ export default function App() {
             onNovaTarefa={() => setNovaTarefa(true)}
           />
         ) : (
-          <p className="text-tinta-suave">Selecione um paciente.</p>
+          <p className="text-tinta-suave">Select a patient.</p>
         )}
       </div>
     </div>
@@ -162,7 +162,7 @@ export default function App() {
           )}
 
           {!estado ? (
-            <p className="text-tinta-suave">Carregando pacientes…</p>
+            <p className="text-tinta-suave">Loading patients…</p>
           ) : pagina === 'inicio' ? (
             <MeuDia estado={estado} usuario={usuarioLogado} filtro={filtro} onFiltrar={setFiltro}
               onNovaTarefa={() => setNovaTarefa(true)} onAbrir={abrirPaciente}

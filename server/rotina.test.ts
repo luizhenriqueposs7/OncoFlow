@@ -53,9 +53,20 @@ test('lembrete visual pertence à sessão, confirma compromisso exato e evita du
   const state = await (await fetch(`${base}/api/paciente/inicio`, { headers: paciente })).json();
   const lembretes = state.lembretes.filter((l: { compromissoId: string }) => l.compromissoId === 'ag-m2');
   assert.equal(lembretes.length, 1);
-  assert.match(lembretes[0].texto, /Exames de sangue/);
+  assert.equal(lembretes[0].texto, 'Pre-treatment blood tests');
   for (const dados of [{ compromissoId: 'ag-j1', antecedenciaMinutos: 120 }, { compromissoId: 'ag-m1', antecedenciaMinutos: 1 }, { compromissoId: 'ag-m1', antecedenciaMinutos: 120, pacienteId: 'pac-001' }]) {
     const response = await fetch(`${base}/api/paciente/lembretes`, { method: 'POST', headers: paciente, body: JSON.stringify(dados) });
     assert.ok([400, 404].includes(response.status));
   }
+});
+
+test('English Lia input and existing check-in identifiers work together', async () => {
+  const conversation = await fetch(`${base}/api/paciente/conversa`, { method: 'POST', headers: paciente, body: JSON.stringify({ texto: 'When is my next appointment?' }) });
+  assert.equal(conversation.status, 200);
+  const state = await conversation.json();
+  assert.ok(state.conversa.some((m: { status: string; texto: string }) => m.status === 'consultado' && /Your next appointment/i.test(m.texto)));
+  const checkin = await fetch(`${base}/api/paciente/checkin`, { method: 'POST', headers: paciente, body: JSON.stringify({ opcoes: ['bem'], origem: 'visual' }) });
+  assert.equal(checkin.status, 200);
+  const updated = await checkin.json();
+  assert.deepEqual(updated.inicio.checkins[0].opcoes, ['bem']);
 });

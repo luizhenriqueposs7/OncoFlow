@@ -93,16 +93,16 @@ export default function PacienteApp() {
         const texto = audio ? await transcrever(audio.base64, audio.mimeType) : null;
         if (operacao !== operacaoVoz.current) return;
         if (texto) aoTranscrever(texto);
-        else setErroVoz('Não consegui transcrever agora. Você pode tentar novamente ou digitar sua mensagem.');
+        else setErroVoz("I couldn't transcribe that right now. You can try again or type your message.");
       } catch {
-        if (operacao === operacaoVoz.current) setErroVoz('Não consegui transcrever agora. Você pode tentar novamente ou digitar sua mensagem.');
+        if (operacao === operacaoVoz.current) setErroVoz("I couldn't transcribe that right now. You can try again or type your message.");
       } finally {
         if (operacao === operacaoVoz.current) setTranscrevendo(false);
       }
       return;
     }
     const ok = await gravador.iniciar();
-    if (operacao === operacaoVoz.current && !ok) setErroVoz('Não consegui usar o microfone. Verifique a permissão ou continue digitando.');
+    if (operacao === operacaoVoz.current && !ok) setErroVoz("I couldn't use the microphone. Check the permission or keep typing.");
   }, [gravador.iniciando, gravador.gravando, gravador.iniciar, gravador.parar, transcrevendo]);
 
   const gravacao = {
@@ -134,7 +134,7 @@ export default function PacienteApp() {
         )}
 
         {!inicio ? (
-          <p className="py-10 text-center text-tinta-suave">Carregando…</p>
+          <p className="py-10 text-center text-tinta-suave">Loading…</p>
         ) : tela === 'inicio' ? (
           <TelaInicio inicio={inicio} irPara={irPara} onPreferencias={() => setPrefsAbertas(true)} />
         ) : tela === 'jornada' ? (
@@ -179,15 +179,15 @@ export default function PacienteApp() {
       </div>
 
       {prefsAbertas && (
-        <Dialogo titulo="Leitura e voz" onFechar={() => setPrefsAbertas(false)}>
+        <Dialogo titulo="Reading and voice" onFechar={() => setPrefsAbertas(false)}>
           <div className="w-full max-w-[440px] bg-white rounded-t-3xl sm:rounded-3xl p-5 pb-[max(20px,env(safe-area-inset-bottom))] space-y-5">
             <fieldset className="space-y-2">
-              <legend className="font-semibold text-azul mb-1">Tamanho do texto</legend>
+              <legend className="font-semibold text-azul mb-1">Text size</legend>
               {(
                 [
                   ['normal', 'Normal'],
-                  ['grande', 'Grande'],
-                  ['muito-grande', 'Muito grande'],
+                  ['grande', 'Large'],
+                  ['muito-grande', 'Extra large'],
                 ] as const
               ).map(([valor, rotulo]) => (
                 <label key={valor} className="flex items-center gap-3 min-h-11 cursor-pointer">
@@ -204,7 +204,7 @@ export default function PacienteApp() {
             </fieldset>
 
             <fieldset className="space-y-2">
-              <legend className="font-semibold text-azul mb-1">Velocidade da voz</legend>
+              <legend className="font-semibold text-azul mb-1">Voice speed</legend>
               <div className="flex gap-2">
                 {[0.75, 1, 1.25].map((v) => (
                   <button
@@ -216,14 +216,14 @@ export default function PacienteApp() {
                       prefs.velocidade === v ? 'border-verde bg-gelo text-azul' : 'border-linha text-azul'
                     }`}
                   >
-                    {String(v).replace('.', ',')}×
+                    {v}×
                   </button>
                 ))}
               </div>
             </fieldset>
 
             <label className="flex items-center justify-between gap-3 min-h-11 cursor-pointer">
-              <span className="font-semibold text-azul">Ler as respostas da Lia em voz alta</span>
+              <span className="font-semibold text-azul">Read Lia's replies aloud</span>
               <input
                 type="checkbox"
                 checked={prefs.lerRespostas}
@@ -231,7 +231,7 @@ export default function PacienteApp() {
                 className="w-6 h-6 accent-verde"
               />
             </label>
-            {!fala.disponivel && <p className="text-sm text-tinta-suave">Este navegador não oferece leitura em voz alta.</p>}
+            {!fala.disponivel && <p className="text-sm text-tinta-suave">This browser does not support reading aloud.</p>}
           </div>
         </Dialogo>
       )}

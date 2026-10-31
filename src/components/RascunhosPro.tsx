@@ -8,7 +8,7 @@ export function RascunhosProProvider({ children }: { children: React.ReactNode }
 }
 export function useRascunhoPro(chave: string) {
   const contexto = useContext(Contexto);
-  if (!contexto) throw new Error('Rascunho fora da sessão da equipe.');
+  if (!contexto) throw new Error("Draft outside the team session.");
   const texto = contexto.rascunhos[chave] ?? '';
   return {
     texto,

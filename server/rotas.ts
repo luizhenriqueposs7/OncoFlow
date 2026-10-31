@@ -56,7 +56,7 @@ function pacienteDa(req: Request) {
 
 function textoDo(req: Request, campo = 'texto'): string {
   const valor = req.body?.[campo];
-  if (typeof valor !== 'string') throw new ErroDominio(400, 'campo_invalido', `Campo "${campo}" é obrigatório.`);
+  if (typeof valor !== 'string') throw new ErroDominio(400, 'campo_invalido', `Field "${campo}" is required.`);
   return valor;
 }
 
@@ -100,7 +100,7 @@ export function criarRotas(): express.Router {
   r.post(
     '/api/pro/pacientes/:id/mensagens',
     rota((req, res) => {
-      if (req.body?.pendenciaId !== undefined && typeof req.body.pendenciaId !== 'string') throw new ErroDominio(400, 'campo_invalido', 'Solicitação inválida.');
+      if (req.body?.pendenciaId !== undefined && typeof req.body.pendenciaId !== 'string') throw new ErroDominio(400, 'campo_invalido', "Invalid request.");
       mensagemDoProfissional(req.params.id, usuarioDa(req), textoDo(req), req.body?.pendenciaId);
       res.json({ ok: true });
     })
@@ -130,7 +130,7 @@ export function criarRotas(): express.Router {
     rota((req, res) => {
       const desfecho = req.body?.desfecho as Desfecho;
       if (!DESFECHOS_VALIDOS.includes(desfecho)) {
-        throw new ErroDominio(400, 'desfecho_invalido', 'Escolha o desfecho da revisão.');
+        throw new ErroDominio(400, 'desfecho_invalido', 'Choose the review outcome.');
       }
       concluirPendencia(req.params.id, usuarioDa(req), desfecho);
       res.json({ ok: true });
@@ -144,7 +144,7 @@ export function criarRotas(): express.Router {
   }));
   r.post('/api/paciente/lembretes', rota((req, res) => {
     const paciente = pacienteDa(req);
-    if ('pacienteId' in (req.body ?? {}) || 'paciente_id' in (req.body ?? {})) throw new ErroDominio(400, 'campo_invalido', 'A agenda é identificada pela sua sessão.');
+    if ('pacienteId' in (req.body ?? {}) || 'paciente_id' in (req.body ?? {})) throw new ErroDominio(400, 'campo_invalido', "The schedule is identified by your session.");
     criarLembreteVisual(paciente, textoDo(req, 'compromissoId'), req.body?.antecedenciaMinutos);
     res.json(visaoPaciente(paciente));
   }));
