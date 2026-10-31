@@ -29,16 +29,16 @@ Files: conflicted `src/` files, new daily workflow components, server task/remin
 
 - [x] Resolve merge preserving daily-workflow behavior; translate all added strings and formatting.
 - [x] Update existing behavioral tests to English seed values; lint, build, 5 API tests and browser smoke for tasks/reminders/drafts.
-- [ ] Commit the verified merge locally.
+- [x] Commit the verified merge locally (`ec1e72a`).
 
 ## Task 2 — Consultation domain and API
 
 Files: `src/consulta.ts`, `server/copiloto.ts`, `server/copiloto.test.ts`, `server/estado.ts`, `server/rotas.ts`, `server/configServico.ts`, `fixtures/consultas/maria-en.json`.
 Interfaces: GET/POST `/api/pro/pacientes/:id/consulta` returns `ConsultaCopiloto`; POST `/api/pro/pacientes/:id/consulta/itens/:itemId/revisao` accepts `RevisaoItem`; both require demo team identity. Review endpoint requires doctor role.
 
-- [ ] Write failing HTTP tests for fixture loading/idempotence, patient isolation, approval links, rejection, permissions, invalid/duplicate decisions and reset.
-- [ ] Implement fixture verification and patient-scoped review state, server-owned defaults and atomic decisions.
-- [ ] Run full MVP API suite and type check; commit.
+- [x] Write failing HTTP tests for fixture loading/idempotence, patient isolation, approval links, rejection, permissions, invalid/duplicate decisions and reset.
+- [x] Implement fixture verification and patient-scoped review state, server-owned defaults and atomic decisions.
+- [x] Run full MVP API suite and type check; commit.
 
 ## Task 3 — Review interface and integrated rehearsal
 
@@ -55,3 +55,5 @@ Files: `src/components/ConsultaCopiloto.tsx`, `src/components/RevisaoConsultaDia
 - User authorization covers the integration and first copilot flow described above; execute routine implementation choices inline.
 - Task 1 verification: lint/build and 5 daily-workflow API tests passed. Browser passed English task creation, own-task filtering/reload, cross-patient draft isolation, direct reminder and English Lia input. Existing preview HMR port collision is avoided for the final preview with `DISABLE_HMR=true`.
 - Task 2 RED: 7 HTTP tests fail on missing consultation endpoints (404); no domain implementation existed at this point.
+- Task 2 complete: 14/14 MVP tests and lint passed. Additional RED→GREEN checks cover structured malformed-JSON errors and malformed extraction categories. Reads and reviews are physician-only; confirmed tasks remain available to navigation.
+- Task 3 RED: browser waits for missing Consultation tab and fails before interface implementation.

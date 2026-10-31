@@ -1,0 +1,14 @@
+{
+  "segmentos": [
+    { "id": "s01", "interlocutor": "medico", "inicioMs": 0, "texto": "What would you like us to talk about today?" },
+    { "id": "s02", "interlocutor": "paciente", "inicioMs": 8000, "texto": "I would like to have children in the future. I am worried about my fertility." },
+    { "id": "s03", "interlocutor": "medico", "inicioMs": 18000, "texto": "We can record your questions and ask the navigation team to help organize a discussion." },
+    { "id": "s04", "interlocutor": "paciente", "inicioMs": 29000, "texto": "I also need help arranging transportation for my appointments." },
+    { "id": "s05", "interlocutor": "paciente", "inicioMs": 38000, "texto": "I prefer appointments in the morning when possible." }
+  ],
+  "sugestoes": [
+    { "categoria": "preocupacao", "origem": "dado_extraido", "textoIa": "Patient reports concern about fertility and a desire to have children in the future.", "evidencias": [{ "segmentoId": "s02", "citacao": "I would like to have children in the future. I am worried about my fertility." }] },
+    { "categoria": "necessidade_possivel", "origem": "dado_extraido", "textoIa": "Patient reports needing help arranging transportation for appointments.", "evidencias": [{ "segmentoId": "s04", "citacao": "I also need help arranging transportation for my appointments." }] },
+    { "categoria": "preferencia", "origem": "dado_extraido", "textoIa": "Patient prefers morning appointments when possible.", "evidencias": [{ "segmentoId": "s05", "citacao": "I prefer appointments in the morning when possible." }] }
+  ]
+}

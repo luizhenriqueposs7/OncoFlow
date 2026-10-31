@@ -5,6 +5,7 @@ import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import { criarRotas } from './server/rotas';
 import { pacienteDaSessao, verificarInatividade, ErroDominio } from './server/estado';
+import { tratarErroApi } from './server/erros';
 
 dotenv.config();
 
@@ -86,6 +87,7 @@ async function startServer() {
   });
 
   app.use(criarRotas());
+  app.use(tratarErroApi);
 
   // Herdado do IRIS: depois de N minutos sem atividade do profissional, a Lia volta a atender.
   setInterval(verificarInatividade, 30_000);

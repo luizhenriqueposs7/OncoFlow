@@ -20,6 +20,7 @@ import { criarSeed, SESSOES_PACIENTE, USUARIOS_EQUIPE } from './seed';
 import { detectarUrgencia } from './urgencia';
 import { agoraISO, gerarId, horarioDe, somarHoras } from './util';
 import { iniciarVideochamada as gerarSalaVideochamada } from '../src/services/chamadaService';
+import type { ConsultaCopiloto } from '../src/consulta';
 
 export class ErroDominio extends Error {
   constructor(
@@ -63,6 +64,7 @@ const estado = {
   pendencias: [] as Pendencia[],
   propostas: new Map<string, PropostaInterna>(),
   auditoria: [] as EventoAuditoria[],
+  consultas: new Map<string, ConsultaCopiloto>(),
 };
 
 export function resetar(): void {
@@ -70,6 +72,7 @@ export function resetar(): void {
   estado.pacientes = seed.pacientes;
   estado.pendencias = seed.pendencias;
   estado.propostas.clear();
+  estado.consultas.clear();
   estado.auditoria = [];
   estado.versao += 1;
 }
@@ -80,8 +83,17 @@ export function versaoAtual(): number {
   return estado.versao;
 }
 
-function mudou(): void {
+export function mudou(): void {
   estado.versao += 1;
+}
+
+export function consultaDe(pacienteId: string): ConsultaCopiloto | undefined {
+  return estado.consultas.get(pacienteId);
+}
+
+export function guardarConsulta(consulta: ConsultaCopiloto): void {
+  estado.consultas.set(consulta.pacienteId, consulta);
+  mudou();
 }
 
 export function todosPacientes(): Paciente[] {

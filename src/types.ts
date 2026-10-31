@@ -126,7 +126,7 @@ export type TipoPendencia =
   | 'tarefa';
 // Tarefas manuais da equipe usam o mesmo ciclo operacional, sem conteúdo visível ao paciente.
 
-export type OrigemPendencia = 'hipotese_sistema' | 'solicitacao_paciente' | 'regra_servico' | 'acao_equipe';
+export type OrigemPendencia = 'hipotese_sistema' | 'solicitacao_paciente' | 'regra_servico' | 'acao_equipe' | 'consulta_confirmada';
 
 export type EstadoPendencia = 'aberta' | 'em_andamento' | 'concluida';
 
@@ -154,6 +154,8 @@ export interface Pendencia {
   responsavel?: string;
   responsavelId?: string;
   criadaPor?: string;
+  consultaId?: string;
+  itemConsultaId?: string;
   desfecho?: Desfecho;
   concluidaEm?: string;
   concluidaPor?: string;

@@ -24,6 +24,7 @@ import {
 import { mensagemDoPaciente, responderProposta } from './lia';
 import { USUARIOS_EQUIPE } from './seed';
 import { visaoPaciente, visaoPro } from './visoes';
+import { carregarConsulta, estadoConsulta, revisarItem } from './copiloto';
 
 const OPCOES_VALIDAS: OpcaoCheckin[] = ['bem', 'cansaco', 'dor', 'nausea', 'ansiedade', 'outro'];
 const DESFECHOS_VALIDOS: Desfecho[] = ['sem_acao_necessaria', 'contato_realizado', 'encaminhado'];
@@ -76,6 +77,15 @@ export function criarRotas(): express.Router {
   );
 
   // OncoFlow Pro (equipe)
+  r.get('/api/pro/pacientes/:id/consulta', rota((req, res) => {
+    res.json(estadoConsulta(req.params.id, usuarioDa(req)));
+  }));
+  r.post('/api/pro/pacientes/:id/consulta', rota((req, res) => {
+    res.json(carregarConsulta(req.params.id, usuarioDa(req)));
+  }));
+  r.post('/api/pro/pacientes/:id/consulta/itens/:itemId/revisao', rota((req, res) => {
+    res.json(revisarItem(req.params.id, req.params.itemId, usuarioDa(req), req.body));
+  }));
   r.get(
     '/api/pro/estado',
     rota((req, res) => {

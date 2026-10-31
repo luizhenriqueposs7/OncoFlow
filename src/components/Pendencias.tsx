@@ -37,6 +37,7 @@ export const ROTULO_PAPEL: Record<PapelEquipe, string> = {
 };
 
 export const ROTULO_ORIGEM: Record<OrigemPendencia, string> = {
+  consulta_confirmada: 'Consultation · confirmed by physician',
   acao_equipe: 'Created by the team',
   hipotese_sistema: 'System hypothesis · awaiting review',
   solicitacao_paciente: 'Request confirmed by the patient',

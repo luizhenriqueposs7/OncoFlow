@@ -31,6 +31,7 @@ export interface ConfigServico {
   minutosRetornoLia: number;
   minutosValidadeConfirmacao: number;
   horaPadraoLembrete: number;
+  copiloto: { responsavelPadraoId: string; prazoHoras: number };
 }
 
 export const CONFIG_SERVICO: ConfigServico = {
@@ -118,4 +119,5 @@ export const CONFIG_SERVICO: ConfigServico = {
   minutosRetornoLia: 20,
   minutosValidadeConfirmacao: 2,
   horaPadraoLembrete: 9,
+  copiloto: { responsavelPadraoId: 'usr-carla', prazoHoras: 72 },
 };
