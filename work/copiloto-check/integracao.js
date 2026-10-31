@@ -23,6 +23,14 @@ async (page) => {
   if (await page.getByRole('textbox', { name: /Message to/ }).inputValue()) throw new Error('Draft leaked between patients');
   await page.getByRole('button', { name: /Maria Oliveira Costa 34 y\/o/ }).click();
   if (await page.getByRole('textbox', { name: /Message to Maria/ }).inputValue() !== 'Retained fictional draft') throw new Error('Patient draft was not retained');
+  await page.locator('nav:visible').getByRole('button', { name: /Pending items/ }).click();
+  await page.getByRole('button', { name: 'All', exact: true }).click();
+  const request = page.locator('.review-item').filter({ hasText: 'Renato Oliveira Santos' });
+  await request.getByRole('button', { name: 'Reply to request', exact: true }).click();
+  await page.locator('.reply-context').getByText(/^Reply linked to:/).waitFor();
+  await page.getByRole('textbox', { name: /Message to Renato/ }).fill('Fictional reply linked to this request.');
+  await page.getByRole('button', { name: 'Send message', exact: true }).click();
+  await page.getByText('Fictional reply linked to this request.', { exact: true }).waitFor();
   await page.goto(`${base}/paciente?tela=agenda`);
   const exam = page.locator('article').filter({ hasText: 'Pre-treatment blood tests' });
   await exam.getByRole('button', { name: 'Create reminder', exact: true }).click();
@@ -35,5 +43,5 @@ async (page) => {
   await page.getByRole('textbox', { name: /Message to Lia/ }).fill('When is my next appointment?');
   await page.getByRole('button', { name: 'Send', exact: true }).click();
   await page.getByText(/Your next appointment is/).last().waitFor();
-  return { englishDailyWorkflow: true, filtersAndReload: true, patientDraftIsolation: true, directReminder: true, englishLia: true };
+  return { englishDailyWorkflow: true, filtersAndReload: true, patientDraftIsolation: true, linkedReply: true, directReminder: true, englishLia: true };
 }

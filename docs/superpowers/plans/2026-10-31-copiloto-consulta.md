@@ -46,8 +46,8 @@ Files: `src/components/ConsultaCopiloto.tsx`, `src/components/RevisaoConsultaDia
 
 - [x] Observe browser failure for missing Consultation tab.
 - [x] Add transcript/suggestion workspace and accessible approve/edit/reject dialog with owner/deadline/step confirmation and retained inline errors.
-- [ ] Verify doctor approval → My day task → patient journey, non-doctor read-only, rejection, retry, navigation, English copy and 390/1440 widths.
-- [ ] Run lint, build and API suite, obtain independent branch review, fix material findings and save local commits/working preview.
+- [x] Verify doctor approval → My day task → patient journey, non-doctor access restriction, rejection, retry, navigation, English copy and 390/1440 widths.
+- [x] Run lint, build and API suite, obtain independent branch review, fix material findings and save local commits/working preview.
 
 ## Execution ledger
 
@@ -59,3 +59,9 @@ Files: `src/components/ConsultaCopiloto.tsx`, `src/components/RevisaoConsultaDia
 - Task 3 RED: browser waits for missing Consultation tab and fails before interface implementation.
 - Task 3 implemented: browser passed edited approval, retained review after HTTP 503, linked task in My day, patient journey publication, rejection, reload, native dialog focus/Esc, 390 px overflow and isolation from another patient's fixture. Lint, build and 14/14 API tests passed. Desktop/mobile screenshots inspected.
 - Final preview uses the production build on port 3110, avoiding shared development HMR ports.
+- Independent review: no Critical findings; one Important checkbox layout issue and one residual English-copy issue. Production browser confirmed all three rehearsal scenarios, profile/patient switching and zero page errors.
+- Review reproduction RED: at 390 px the open dialog measured clientWidth 360 and scrollWidth 400; checkbox labels overflowed by 56–60 px. Exclude checkboxes from the generic text-field selector and verify the expanded dialog before finishing.
+- Review copy correction: translate the linked-reply caption to meet the English integration requirement; include the actual linked-reply flow in the browser rehearsal.
+- Final: fixed checkbox layout — `work/copiloto-check/dialogo.js` RED→GREEN, expanded review fields fit at 390 px. Screenshot inspected. Full suite 14/14, lint and production build passed after the correction.
+- Final browser verification: all four scenarios passed against the production build (integration including linked reply, complete consultation cycle, patient/profile context, open mobile dialog). No runtime page errors observed in the clean production session.
+- Delivery: keep local branch and existing worktree for iteration; preview at `http://127.0.0.1:3110`. No push or deployment performed. Real authentication, durable persistence and live recording/AI remain outside this explicitly fictional first slice.

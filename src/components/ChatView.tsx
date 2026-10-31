@@ -319,7 +319,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
         </a>
       </div>
 
-      {contexto && <div className="reply-context"><strong>Resposta vinculada: {contexto.titulo}</strong><span>Task completion is recorded separately in the work queue.</span></div>}
+      {contexto && <div className="reply-context"><strong>Reply linked to: {contexto.titulo}</strong><span>Task completion is recorded separately in the work queue.</span></div>}
       {falha && <p role="status" className="send-error">Message not sent. Your draft is saved so you can try again.</p>}
       <form onSubmit={handleEnviar} className="p-3 bg-white border-t border-linha flex items-center gap-2">
         <label htmlFor={`input-msg-${paciente.id}`} className="sr-only">
