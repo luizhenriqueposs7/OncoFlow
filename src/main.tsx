@@ -4,6 +4,7 @@ import './index.css';
 import './visual-refresh.css';
 import './lia-identity.css';
 import './rotina.css';
+import './copiloto.css';
 
 // Duas experiências sobre a mesma plataforma: a equipe usa o OncoFlow Pro (base IRIS) e o
 // paciente usa o OncoFlow Paciente em /paciente. Cada uma carrega só o próprio código.

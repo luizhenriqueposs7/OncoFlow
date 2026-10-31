@@ -25,13 +25,15 @@ import { PlanoTerapeuticoModal } from './PlanoTerapeuticoModal';
 import { UploadPlanoButton } from './UploadPlanoButton';
 import { OrbeMini } from './OrbeMini';
 import { HistoricoPaciente } from './HistoricoPaciente';
+import { ConsultaCopiloto } from './ConsultaCopiloto';
 import { useUrlEscolha, useUrlParam } from '../lib/navegacao';
 import { dataCompromisso, dataHoraCurta, diagnosticoCurto, iniciais } from './proUtil';
 
-type Aba = 'jornada' | 'agenda' | 'exames' | 'comunicacao' | 'resumo' | 'historico';
+type Aba = 'jornada' | 'agenda' | 'exames' | 'comunicacao' | 'resumo' | 'historico' | 'consulta';
 
 const ABAS: [Aba, string][] = [
   ['jornada', 'Journey'],
+  ['consulta', 'Consultation'],
   ['agenda', 'Schedule'],
   ['exames', 'Tests'],
   ['comunicacao', 'Messages'],
@@ -45,6 +47,7 @@ interface DetalhePacienteProps {
   acoes: AcoesPro;
   minutosRetornoLia: number;
   onNovaTarefa: () => void;
+  versao: number;
 }
 
 const JornadaHorizontal: React.FC<{ paciente: PacientePro }> = ({ paciente }) => {
@@ -88,8 +91,8 @@ const JornadaHorizontal: React.FC<{ paciente: PacientePro }> = ({ paciente }) =>
   );
 };
 
-export const DetalhePaciente: React.FC<DetalhePacienteProps> = ({ paciente, usuarioAtual, acoes, minutosRetornoLia, onNovaTarefa }) => {
-  const [aba, setAba] = useUrlEscolha<Aba>('aba', ['jornada','agenda','exames','comunicacao','resumo','historico'], 'jornada');
+export const DetalhePaciente: React.FC<DetalhePacienteProps> = ({ paciente, usuarioAtual, acoes, minutosRetornoLia, onNovaTarefa, versao }) => {
+  const [aba, setAba] = useUrlEscolha<Aba>('aba', ['jornada','agenda','exames','comunicacao','resumo','historico','consulta'], 'jornada');
   const [solicitacao] = useUrlParam('solicitacao');
   const contexto = paciente.pendencias.find(p => p.id === solicitacao);
   const [planoAberto, setPlanoAberto] = useState(false);
@@ -178,6 +181,7 @@ export const DetalhePaciente: React.FC<DetalhePacienteProps> = ({ paciente, usua
       </div>
 
       <div className="pt-6" role="tabpanel" id={`painel-${paciente.id}`} aria-labelledby={`tab-${paciente.id}-${aba}`} tabIndex={0}>
+        {aba === 'consulta' && <ConsultaCopiloto key={`${paciente.id}:${usuarioAtual.id}`} pacienteId={paciente.id} usuario={usuarioAtual} versao={versao} onAtualizar={acoes.recarregar} onVerJornada={() => setAba('jornada')} />}
         {aba === 'historico' && <HistoricoPaciente paciente={paciente} />}
         {aba === 'jornada' && (
           <div className="space-y-6">

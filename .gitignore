@@ -24,6 +24,8 @@ test-results/
 .playwright-cli/
 /work/rotina-check/screenshots/
 /work/rotina-check/review.patch
+/work/copiloto-check/*.png
+/work/copiloto-check/review.patch
 
 # Áudio gravado (nunca versionar voz; fixtures fictícias ficam em fixtures/audio)
 *.webm

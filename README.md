@@ -67,6 +67,28 @@ a Lia e o check-in funcionam por texto e pelos chips de sugestão.
 npm run lint && npm run build
 ```
 
+### English demo: daily workflow and consultation copilot
+
+The root MVP runs in US English. **My day** includes assigned/overdue filters, patient shortcuts,
+manual tasks, request-linked replies and patient schedule reminders. Reminders are saved in the demo;
+external notification delivery is not implemented.
+
+To rehearse the first consultation flow:
+
+1. Sign in as **Dr. Camila Ribeiro**, open **Patients → Maria Oliveira Costa → Consultation**.
+2. Choose **Load sample consultation** to view a fictional transcript and recorded suggestions.
+3. Review the fertility concern with its literal quote. Select **Review and approve**, confirm or edit
+   the statement, task owner and deadline, and optionally publish a patient journey step.
+4. Write a plain-language title such as **Fertility support discussion** and a patient explanation.
+5. Confirm approval. The task appears in **My day** and the approved step in **OncoFlow Patient → My journey**.
+6. Rejected suggestions require a reason and create no task or step. Resetting the demo clears reviews.
+
+Consultation content and decisions are physician-only. The patient never receives the transcript or
+pending/rejected suggestions. This first flow uses fixed fictional fixtures; live consultation recording,
+transcription and LLM extraction are not connected. Data remains in memory.
+
+Run all MVP API tests with `npm test`. Browser rehearsal scripts are in `work/copiloto-check/`.
+
 ---
 
 ## Arquitetura-alvo (`backend/` + `frontend/`)

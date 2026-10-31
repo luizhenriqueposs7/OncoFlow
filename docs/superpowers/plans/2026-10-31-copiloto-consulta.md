@@ -44,8 +44,8 @@ Interfaces: GET/POST `/api/pro/pacientes/:id/consulta` returns `ConsultaCopiloto
 
 Files: `src/components/ConsultaCopiloto.tsx`, `src/components/RevisaoConsultaDialog.tsx`, `src/components/DetalhePaciente.tsx`, `src/copiloto.css`, `src/main.tsx`, browser scenario `work/copiloto-check/fluxo.js`, README.
 
-- [ ] Observe browser failure for missing Consultation tab.
-- [ ] Add transcript/suggestion workspace and accessible approve/edit/reject dialog with owner/deadline/step confirmation and retained inline errors.
+- [x] Observe browser failure for missing Consultation tab.
+- [x] Add transcript/suggestion workspace and accessible approve/edit/reject dialog with owner/deadline/step confirmation and retained inline errors.
 - [ ] Verify doctor approval → My day task → patient journey, non-doctor read-only, rejection, retry, navigation, English copy and 390/1440 widths.
 - [ ] Run lint, build and API suite, obtain independent branch review, fix material findings and save local commits/working preview.
 
@@ -57,3 +57,5 @@ Files: `src/components/ConsultaCopiloto.tsx`, `src/components/RevisaoConsultaDia
 - Task 2 RED: 7 HTTP tests fail on missing consultation endpoints (404); no domain implementation existed at this point.
 - Task 2 complete: 14/14 MVP tests and lint passed. Additional RED→GREEN checks cover structured malformed-JSON errors and malformed extraction categories. Reads and reviews are physician-only; confirmed tasks remain available to navigation.
 - Task 3 RED: browser waits for missing Consultation tab and fails before interface implementation.
+- Task 3 implemented: browser passed edited approval, retained review after HTTP 503, linked task in My day, patient journey publication, rejection, reload, native dialog focus/Esc, 390 px overflow and isolation from another patient's fixture. Lint, build and 14/14 API tests passed. Desktop/mobile screenshots inspected.
+- Final preview uses the production build on port 3110, avoiding shared development HMR ports.

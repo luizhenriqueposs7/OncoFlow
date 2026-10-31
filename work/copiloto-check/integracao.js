@@ -19,8 +19,10 @@ async (page) => {
   if (new URL(page.url()).searchParams.get('fila') !== 'minhas') throw new Error('Lost queue filter');
   await page.goto(`${base}/?pagina=pacientes&paciente=pac-maria&aba=comunicacao`);
   await page.getByRole('textbox', { name: /Message to Maria/ }).fill('Retained fictional draft');
-  await page.goto(`${base}/?pagina=pacientes&paciente=pac-001&aba=comunicacao`);
+  await page.getByRole('button', { name: /José Pereira da Silva 64 y\/o/ }).click();
   if (await page.getByRole('textbox', { name: /Message to/ }).inputValue()) throw new Error('Draft leaked between patients');
+  await page.getByRole('button', { name: /Maria Oliveira Costa 34 y\/o/ }).click();
+  if (await page.getByRole('textbox', { name: /Message to Maria/ }).inputValue() !== 'Retained fictional draft') throw new Error('Patient draft was not retained');
   await page.goto(`${base}/paciente?tela=agenda`);
   const exam = page.locator('article').filter({ hasText: 'Pre-treatment blood tests' });
   await exam.getByRole('button', { name: 'Create reminder', exact: true }).click();

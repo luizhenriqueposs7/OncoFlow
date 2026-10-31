@@ -124,6 +124,7 @@ export default function App() {
             acoes={acoes}
             minutosRetornoLia={estado!.minutosRetornoLia}
             onNovaTarefa={() => setNovaTarefa(true)}
+            versao={estado!.versao}
           />
         ) : (
           <p className="text-tinta-suave">Select a patient.</p>

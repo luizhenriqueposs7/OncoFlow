@@ -21,6 +21,7 @@ export async function chamarApi<T>(caminho: string, usuarioId?: string, corpo?: 
 }
 
 export interface AcoesPro {
+  recarregar: () => Promise<void>;
   assumir: (pacienteId: string) => Promise<boolean>;
   devolver: (pacienteId: string) => Promise<boolean>;
   enviar: (pacienteId: string, texto: string, pendenciaId?: string) => Promise<boolean>;
@@ -73,6 +74,7 @@ export function useEstadoPro(usuario: UsuarioEquipe | null) {
   }, [usuario, atualizar]);
 
   const acoes: AcoesPro = {
+    recarregar: atualizar,
     assumir: (id) => acao(`/api/pro/pacientes/${id}/assumir`),
     devolver: (id) => acao(`/api/pro/pacientes/${id}/devolver`),
     enviar: (id, texto, pendenciaId) => acao(`/api/pro/pacientes/${id}/mensagens`, { texto, pendenciaId }, false),
