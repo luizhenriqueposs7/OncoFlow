@@ -77,7 +77,7 @@ export function TelaVozLia(props: Props) {
     <div className="lia-voice-title"><h1 aria-live="polite">{titulo}</h1><p>{gravando ? 'Pode falar, estou aqui para ajudar.' : transcrevendo ? 'Transformando sua fala em texto.' : revisando ? 'Você pode corrigir o texto antes de enviar.' : 'Você escolhe: falar ou escrever.'}</p></div>
 
     <div className={revisando ? 'lia-voice-visual is-reviewing' : 'lia-voice-visual'}>
-      <OrbeLia estado={estado} tamanho={revisando ? 132 : 246} nivel={nivel} />
+      <OrbeLia estado={estado} tamanho={revisando || resposta || proposta ? 132 : 246} nivel={nivel} />
       {!revisando && <OndaVoz estado={estado} nivel={nivel} />}
       {gravando && <p className="lia-record-time"><span aria-hidden />Gravando <time>{tempo}</time></p>}
     </div>
@@ -86,12 +86,12 @@ export function TelaVozLia(props: Props) {
 
     {revisando ? <div className="lia-voice-review">
       <label htmlFor="voz-texto-entendido">Revise antes de enviar</label>
-      <textarea id="voz-texto-entendido" value={rascunho} onChange={(e) => props.onRascunho(e.target.value)} rows={4} />
+      <textarea id="voz-texto-entendido" value={rascunho} disabled={ocupado} onChange={(e) => props.onRascunho(e.target.value)} rows={4} />
       <button type="button" className="lia-primary-button" disabled={!rascunho.trim() || ocupado} onClick={props.onEnviar}><Send size={19} aria-hidden />Enviar mensagem</button>
-      <button type="button" className="lia-secondary-button" onClick={props.onGravar}><RotateCcw size={17} aria-hidden />Gravar novamente</button>
+      <button type="button" className="lia-secondary-button" disabled={ocupado} onClick={props.onGravar}><RotateCcw size={17} aria-hidden />Gravar novamente</button>
     </div> : <>
       {podeResponder && resposta && <div className="lia-spoken-response">
-        <p>{resposta.texto}</p>
+        <p className="whitespace-pre-line">{resposta.texto}</p>
         {resposta.status && <span className="lia-response-status"><Check size={13} aria-hidden />{({ consultado: 'Informação consultada', registrado: 'Solicitação registrada', encaminhado: 'Encaminhado para a equipe', confirmado: 'Confirmado' })[resposta.status]}</span>}
         {resposta.acoes && <div className="lia-voice-actions">{resposta.acoes.map((acao) =>
           <button key={acao.rotulo} type="button" className="lia-secondary-button" onClick={() => props.onAcao(acao)}>{acao.rotulo}</button>

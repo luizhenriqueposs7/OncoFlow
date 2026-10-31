@@ -75,6 +75,7 @@ export const TelaLia: React.FC<TelaLiaProps> = ({
   const [modo, setModo] = useState<'voz' | 'texto'>(modoInicial);
   const [rascunhoVoz, setRascunhoVoz] = useState<string | null>(null);
   const [concluido, setConcluido] = useState(false);
+  const [falhaEnvio, setFalhaEnvio] = useState(false);
   const fimRef = useRef<HTMLDivElement>(null);
   const vistas = useRef(inicio.conversa.length);
   const respostaPorVoz = useRef(false);
@@ -121,8 +122,13 @@ export const TelaLia: React.FC<TelaLiaProps> = ({
     if (!limpo) return;
     fala.parar();
     respostaPorVoz.current = origem === 'voz';
-    setTexto('');
-    await enviar(limpo, origem);
+    const ok = await enviar(limpo, origem);
+    setFalhaEnvio(ok !== true);
+    if (ok === true) {
+      setTexto(atual => atual === conteudo ? '' : atual);
+      setRascunhoVoz(atual => atual === conteudo ? null : atual);
+    }
+    else respostaPorVoz.current = false;
   };
 
   const falarComLia = () => {
@@ -134,7 +140,9 @@ export const TelaLia: React.FC<TelaLiaProps> = ({
   };
 
   const proposta = inicio.proposta && new Date(inicio.proposta.expiraEm).getTime() > Date.now() ? inicio.proposta : undefined;
-  const ultimaResposta = [...inicio.conversa].reverse().find((m) => m.autor === 'lia' || m.autor === 'profissional');
+  const ultimoPaciente = inicio.conversa.map(m => m.autor).lastIndexOf('paciente');
+  const respostas = inicio.conversa.slice(ultimoPaciente + 1).filter(m => !m.sistema && (m.autor === 'lia' || m.autor === 'profissional'));
+  const ultimaResposta = respostas.length ? { ...respostas[respostas.length - 1], texto: respostas.map(m => m.texto).join('\n\n'), acoes: respostas.flatMap(m => m.acoes ?? []), status: respostas.find(m => m.status)?.status } : undefined;
   const paraTexto = () => {
     respostaPorVoz.current = false;
     gravacao.cancelar();
@@ -147,7 +155,7 @@ export const TelaLia: React.FC<TelaLiaProps> = ({
   if (modo === 'voz') return <TelaVozLia nome={nome} estado={estadoOrbe}
     nivel={gravacao.gravando ? gravacao.nivel : fala.nivel}
     iniciando={gravacao.iniciando} gravando={gravacao.gravando} transcrevendo={gravacao.transcrevendo}
-    ocupado={ocupado} falando={fala.falando} vozDisponivel={fala.disponivel} erro={gravacao.erro}
+    ocupado={ocupado} falando={fala.falando} vozDisponivel={fala.disponivel} erro={falhaEnvio ? 'Não foi possível enviar. O texto foi mantido; tente novamente.' : gravacao.erro}
     rascunho={rascunhoVoz} resposta={inicio.conversa.some((m) => m.autor === 'paciente') ? ultimaResposta : undefined} proposta={proposta}
     avisos={inicio.conversa.filter((m) => m.tipoSistema === 'urgencia' || m.tipoSistema === 'videochamada')}
     atendente={inicio.modoConversa === 'profissional' ? inicio.atendente : undefined}
@@ -157,7 +165,6 @@ export const TelaLia: React.FC<TelaLiaProps> = ({
     onEnviar={() => {
       if (!rascunhoVoz?.trim()) return;
       const transcrito = rascunhoVoz;
-      setRascunhoVoz(null);
       void mandar(transcrito, 'voz');
     }}
     onOuvir={() => { if (ultimaResposta) fala.falar(ultimaResposta.texto); }}
@@ -321,6 +328,7 @@ export const TelaLia: React.FC<TelaLiaProps> = ({
         <div ref={fimRef} />
       </div>
 
+      {falhaEnvio && <p className="send-error" role="status">A mensagem não foi enviada. Confira a conexão e tente novamente.</p>}
       {gravacao.erro && (
         <p role="status" className="rounded-xl bg-atencao-fundo border border-atencao-borda text-atencao px-3 py-2 text-sm mb-2">
           {gravacao.erro}
@@ -363,6 +371,7 @@ export const TelaLia: React.FC<TelaLiaProps> = ({
         <input
           id="texto-lia"
           value={texto}
+          disabled={ocupado}
           onChange={(e) => setTexto(e.target.value)}
           placeholder="Digite ou fale aqui…"
           className="flex-1 min-w-0 min-h-14 rounded-2xl border border-linha bg-white px-4 text-azul"
@@ -370,7 +379,7 @@ export const TelaLia: React.FC<TelaLiaProps> = ({
         <button
           type="submit"
           disabled={!texto.trim() || ocupado}
-          aria-label="Enviar"
+          aria-label={falhaEnvio ? 'Tentar enviar novamente' : 'Enviar'}
           className="w-14 h-14 rounded-2xl bg-azul text-white flex items-center justify-center shrink-0 disabled:opacity-40 cursor-pointer"
         >
           <Send className="w-6 h-6" aria-hidden />

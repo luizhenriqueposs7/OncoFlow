@@ -24,16 +24,19 @@ import { PendenciaItem, BadgeSituacao } from './Pendencias';
 import { PlanoTerapeuticoModal } from './PlanoTerapeuticoModal';
 import { UploadPlanoButton } from './UploadPlanoButton';
 import { OrbeMini } from './OrbeMini';
+import { HistoricoPaciente } from './HistoricoPaciente';
+import { useUrlEscolha, useUrlParam } from '../lib/navegacao';
 import { dataCompromisso, dataHoraCurta, diagnosticoCurto, iniciais } from './proUtil';
 
-type Aba = 'jornada' | 'agenda' | 'exames' | 'comunicacao' | 'resumo';
+type Aba = 'jornada' | 'agenda' | 'exames' | 'comunicacao' | 'resumo' | 'historico';
 
 const ABAS: [Aba, string][] = [
   ['jornada', 'Jornada'],
   ['agenda', 'Agenda'],
   ['exames', 'Exames'],
   ['comunicacao', 'Comunicação'],
-  ['resumo', 'Resumo'],
+  ['resumo', 'Tarefas e resumo'],
+  ['historico', 'Histórico'],
 ];
 
 interface DetalhePacienteProps {
@@ -41,6 +44,7 @@ interface DetalhePacienteProps {
   usuarioAtual: UsuarioEquipe;
   acoes: AcoesPro;
   minutosRetornoLia: number;
+  onNovaTarefa: () => void;
 }
 
 const JornadaHorizontal: React.FC<{ paciente: PacientePro }> = ({ paciente }) => {
@@ -84,8 +88,10 @@ const JornadaHorizontal: React.FC<{ paciente: PacientePro }> = ({ paciente }) =>
   );
 };
 
-export const DetalhePaciente: React.FC<DetalhePacienteProps> = ({ paciente, usuarioAtual, acoes, minutosRetornoLia }) => {
-  const [aba, setAba] = useState<Aba>('jornada');
+export const DetalhePaciente: React.FC<DetalhePacienteProps> = ({ paciente, usuarioAtual, acoes, minutosRetornoLia, onNovaTarefa }) => {
+  const [aba, setAba] = useUrlEscolha<Aba>('aba', ['jornada','agenda','exames','comunicacao','resumo','historico'], 'jornada');
+  const [solicitacao] = useUrlParam('solicitacao');
+  const contexto = paciente.pendencias.find(p => p.id === solicitacao);
   const [planoAberto, setPlanoAberto] = useState(false);
 
   const agora = Date.now();
@@ -101,7 +107,7 @@ export const DetalhePaciente: React.FC<DetalhePacienteProps> = ({ paciente, usua
   const concluir = (id: string, desfecho: Desfecho) => acoes.concluirPendencia(id, desfecho);
 
   return (
-    <section className="rounded-2xl bg-white border border-linha/70 shadow-[0_2px_12px_-6px_rgba(18,59,86,0.15)] p-5 sm:p-7">
+    <section className="patient-detail rounded-2xl bg-white border border-linha/70 shadow-[0_2px_12px_-6px_rgba(18,59,86,0.15)] p-5 sm:p-7">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4 min-w-0">
           <span className="w-16 h-16 rounded-full bg-gelo text-verde text-xl font-semibold flex items-center justify-center shrink-0">
@@ -130,14 +136,14 @@ export const DetalhePaciente: React.FC<DetalhePacienteProps> = ({ paciente, usua
             </div>
           </div>
         </div>
-        <button
+        <div className="patient-detail-actions"><button type="button" className="work-primary" onClick={onNovaTarefa}>Nova tarefa</button><button type="button" className="work-secondary" onClick={() => setAba('historico')}>Ver histórico</button><button
           type="button"
           onClick={() => setPlanoAberto(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-linha text-sm font-medium text-azul hover:bg-gelo cursor-pointer"
         >
           Ver plano terapêutico
           <FileSearch className="w-4 h-4" aria-hidden />
-        </button>
+        </button></div>
       </div>
 
       <div role="tablist" aria-label="Informações do paciente" className="mt-6 flex overflow-x-auto overflow-y-hidden border-b border-linha">
@@ -146,6 +152,17 @@ export const DetalhePaciente: React.FC<DetalhePacienteProps> = ({ paciente, usua
             key={id}
             type="button"
             role="tab"
+            id={`tab-${paciente.id}-${id}`}
+            aria-controls={`painel-${paciente.id}`}
+            tabIndex={aba === id ? 0 : -1}
+            onKeyDown={e => {
+              if (!['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return;
+              e.preventDefault();
+              const i = ABAS.findIndex(([valor]) => valor === id);
+              const next = e.key === 'Home' ? 0 : e.key === 'End' ? ABAS.length - 1 : (i + (e.key === 'ArrowRight' ? 1 : -1) + ABAS.length) % ABAS.length;
+              setAba(ABAS[next][0]);
+              document.getElementById(`tab-${paciente.id}-${ABAS[next][0]}`)?.focus();
+            }}
             aria-selected={aba === id}
             onClick={() => setAba(id)}
             className={`shrink-0 px-5 py-3 -mb-px border-b-[3px] text-[15px] cursor-pointer ${
@@ -160,12 +177,13 @@ export const DetalhePaciente: React.FC<DetalhePacienteProps> = ({ paciente, usua
         ))}
       </div>
 
-      <div className="pt-6" role="tabpanel">
+      <div className="pt-6" role="tabpanel" id={`painel-${paciente.id}`} aria-labelledby={`tab-${paciente.id}-${aba}`} tabIndex={0}>
+        {aba === 'historico' && <HistoricoPaciente paciente={paciente} />}
         {aba === 'jornada' && (
           <div className="space-y-6">
             <JornadaHorizontal paciente={paciente} />
             {proximo ? (
-              <div className="flex flex-wrap items-center gap-5 rounded-2xl bg-gelo/70 px-6 py-5">
+              <div className="patient-next-appointment rounded-2xl bg-gelo/70 px-5 py-5">
                 <CalendarDays className="w-9 h-9 text-teal shrink-0" strokeWidth={1.6} aria-hidden />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-tinta-suave">Próximo compromisso</p>
@@ -262,7 +280,7 @@ export const DetalhePaciente: React.FC<DetalhePacienteProps> = ({ paciente, usua
         )}
 
         {aba === 'comunicacao' && (
-          <ChatView paciente={paciente} usuarioAtual={usuarioAtual} acoes={acoes} minutosRetornoLia={minutosRetornoLia} />
+          <ChatView paciente={paciente} usuarioAtual={usuarioAtual} acoes={acoes} minutosRetornoLia={minutosRetornoLia} contexto={contexto} />
         )}
 
         {aba === 'resumo' && (

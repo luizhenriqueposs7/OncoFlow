@@ -53,7 +53,7 @@ export function visaoPaciente(paciente: Paciente): InicioPaciente {
     documentos: [...paciente.documentos].sort((a, b) => b.data.localeCompare(a.data)),
     lembretes: paciente.lembretes,
     checkins: [...paciente.checkins].sort((a, b) => b.em.localeCompare(a.em)),
-    conversa: paciente.mensagens.filter((m) => m.visivelPaciente),
+    conversa: paciente.mensagens.filter((m) => m.visivelPaciente).map(({ pendenciaId: _interno, ...mensagem }) => mensagem),
     modoConversa: paciente.modoConversa,
     atendente: paciente.modoConversa === 'profissional' ? paciente.profissionalResponsavel : undefined,
     solicitacoes: todasPendencias()

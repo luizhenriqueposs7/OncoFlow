@@ -5,6 +5,7 @@
 
 import type {
   Checkin,
+  NovaTarefa,
   Desfecho,
   Mensagem,
   OpcaoCheckin,
@@ -184,7 +185,10 @@ export function devolverParaLia(
   auditar(usuario?.nome ?? 'sistema', `devolveu_conversa_${motivo}`, pacienteId);
 }
 
-export function mensagemDoProfissional(pacienteId: string, usuario: UsuarioEquipe, texto: string): void {
+export function mensagemDoProfissional(pacienteId: string, usuario: UsuarioEquipe, texto: string, pendenciaId?: string): void {
+  if (pendenciaId && obterPendencia(pendenciaId).pacienteId !== pacienteId) {
+    throw new ErroDominio(404, "pendencia_nao_encontrada", "Pendência não encontrada para este paciente.");
+  }
   const limpo = texto.trim();
   if (!limpo) throw new ErroDominio(400, 'texto_vazio', 'Digite uma mensagem.');
   // Como no IRIS: enviar uma mensagem com a Lia ativa faz o profissional assumir a conversa.
@@ -193,6 +197,7 @@ export function mensagemDoProfissional(pacienteId: string, usuario: UsuarioEquip
   paciente.ultimaAtividadeProfissional = agoraISO();
   adicionarMensagem(paciente, {
     autor: 'profissional',
+    pendenciaId,
     nomeAutor: usuario.nome,
     texto: limpo,
     visivelPaciente: true,
@@ -271,6 +276,40 @@ export function obterPendencia(id: string): Pendencia {
   return pendencia;
 }
 
+export function criarTarefaManual(pacienteId: string, ator: UsuarioEquipe, dados: NovaTarefa): Pendencia {
+  const paciente = obterPaciente(pacienteId);
+  const responsavel = USUARIOS_EQUIPE.find(u => u.id === dados.responsavelId);
+  const titulo = typeof dados.titulo === 'string' ? dados.titulo.trim() : '';
+  const motivo = typeof dados.motivo === 'string' ? dados.motivo.trim() : '';
+  const prazo = typeof dados.prazo === 'string' ? Date.parse(dados.prazo) : NaN;
+  if (!titulo || titulo.length > 120 || !motivo || motivo.length > 2000 || !responsavel || !Number.isFinite(prazo) || prazo <= Date.now()) {
+    throw new ErroDominio(400, 'tarefa_invalida', 'Preencha título, motivo, responsável e um prazo futuro válido.');
+  }
+  const tarefa = criarPendencia(paciente, {
+    tipo: 'tarefa', origem: 'acao_equipe', titulo, motivo, papelDestino: responsavel.papel,
+    responsavel: responsavel.nome, responsavelId: responsavel.id, criadaPor: ator.nome,
+  });
+  tarefa.prazo = new Date(prazo).toISOString();
+  tarefa.estado = 'em_andamento';
+  auditar(ator.nome, 'criou_tarefa', tarefa.id);
+  return tarefa;
+}
+
+export function criarLembreteVisual(paciente: Paciente, compromissoId: string, antecedenciaMinutos: number) {
+  const compromisso = paciente.agenda.find(c => c.id === compromissoId);
+  if (!compromisso) throw new ErroDominio(404, 'compromisso_nao_encontrado', 'Compromisso não encontrado na sua agenda.');
+  if (![1440, 120].includes(antecedenciaMinutos)) throw new ErroDominio(400, 'antecedencia_invalida', 'Escolha um dia ou duas horas antes.');
+  const momento = Date.parse(compromisso.dataHora) - antecedenciaMinutos * 60000;
+  if (!Number.isFinite(momento) || momento <= Date.now()) throw new ErroDominio(400, 'horario_passado', 'Esse horário já passou. Escolha outra antecedência.');
+  const existente = paciente.lembretes.find(l => l.compromissoId === compromisso.id);
+  if (existente) return existente;
+  const lembrete = { id: gerarId('lem'), texto: compromisso.titulo, compromissoId: compromisso.id, dataHora: new Date(momento).toISOString(), criadoEm: agoraISO() };
+  paciente.lembretes.push(lembrete);
+  auditar(paciente.nome, 'criou_lembrete', lembrete.id);
+  mudou();
+  return lembrete;
+}
+
 export function assumirPendencia(id: string, usuario: UsuarioEquipe): void {
   const pendencia = obterPendencia(id);
   if (pendencia.estado === 'concluida') {
@@ -278,6 +317,7 @@ export function assumirPendencia(id: string, usuario: UsuarioEquipe): void {
   }
   pendencia.estado = 'em_andamento';
   pendencia.responsavel = usuario.nome;
+  pendencia.responsavelId = usuario.id;
   auditar(usuario.nome, 'assumiu_pendencia', id);
   mudou();
 }

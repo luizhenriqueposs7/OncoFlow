@@ -43,6 +43,7 @@ export interface Mensagem {
   origem?: 'texto' | 'voz';
   link?: string;
   acoes?: AcaoMensagem[];
+  pendenciaId?: string; // vínculo operacional de uma resposta da equipe
 }
 
 export type ModoConversa = 'lia' | 'profissional';
@@ -121,9 +122,11 @@ export type TipoPendencia =
   | 'checkin'
   | 'contato_equipe'
   | 'reagendamento'
-  | 'duvida';
+  | 'duvida'
+  | 'tarefa';
+// Tarefas manuais da equipe usam o mesmo ciclo operacional, sem conteúdo visível ao paciente.
 
-export type OrigemPendencia = 'hipotese_sistema' | 'solicitacao_paciente' | 'regra_servico';
+export type OrigemPendencia = 'hipotese_sistema' | 'solicitacao_paciente' | 'regra_servico' | 'acao_equipe';
 
 export type EstadoPendencia = 'aberta' | 'em_andamento' | 'concluida';
 
@@ -149,6 +152,8 @@ export interface Pendencia {
   criadaEm: string;
   prazo: string;
   responsavel?: string;
+  responsavelId?: string;
+  criadaPor?: string;
   desfecho?: Desfecho;
   concluidaEm?: string;
   concluidaPor?: string;
@@ -244,3 +249,5 @@ export interface InicioPaciente {
   avisoUrgencia: AvisoUrgencia;
   quemVe: string;
 }
+
+export interface NovaTarefa { titulo: string; motivo: string; responsavelId: string; prazo: string; }

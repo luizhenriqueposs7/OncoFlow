@@ -10,6 +10,8 @@ import {
   assumirPendencia,
   atualizarPlano,
   concluirPendencia,
+  criarTarefaManual,
+  criarLembreteVisual,
   devolverParaLia,
   ErroDominio,
   iniciarVideochamada,
@@ -98,7 +100,8 @@ export function criarRotas(): express.Router {
   r.post(
     '/api/pro/pacientes/:id/mensagens',
     rota((req, res) => {
-      mensagemDoProfissional(req.params.id, usuarioDa(req), textoDo(req));
+      if (req.body?.pendenciaId !== undefined && typeof req.body.pendenciaId !== 'string') throw new ErroDominio(400, 'campo_invalido', 'Solicitação inválida.');
+      mensagemDoProfissional(req.params.id, usuarioDa(req), textoDo(req), req.body?.pendenciaId);
       res.json({ ok: true });
     })
   );
@@ -135,6 +138,16 @@ export function criarRotas(): express.Router {
   );
 
   // OncoFlow Paciente (o paciente vem da sessão, nunca da URL)
+  r.post('/api/pro/pacientes/:id/tarefas', rota((req, res) => {
+    const tarefa = criarTarefaManual(req.params.id, usuarioDa(req), req.body ?? {});
+    res.status(201).json({ tarefa });
+  }));
+  r.post('/api/paciente/lembretes', rota((req, res) => {
+    const paciente = pacienteDa(req);
+    if ('pacienteId' in (req.body ?? {}) || 'paciente_id' in (req.body ?? {})) throw new ErroDominio(400, 'campo_invalido', 'A agenda é identificada pela sua sessão.');
+    criarLembreteVisual(paciente, textoDo(req, 'compromissoId'), req.body?.antecedenciaMinutos);
+    res.json(visaoPaciente(paciente));
+  }));
   r.get(
     '/api/paciente/inicio',
     rota((req, res) => {

@@ -1,0 +1,52 @@
+async (page) => {
+  const base = 'http://127.0.0.1:3105'; const result = {};
+  await page.goto(base);
+  await page.getByRole('searchbox', { name: 'Buscar paciente', exact: true }).fill('Maria');
+  result.homeSearchShowsResults = new URL(page.url()).searchParams.get('pagina') === 'pacientes';
+  await page.goto(`${base}/?pagina=comunicacao&paciente=pac-maria`);
+  let fail;
+  const reached = new Promise(resolve => page.route('**/api/pro/pacientes/pac-maria/mensagens', route => { fail = () => route.abort('failed'); resolve(); }));
+  await page.getByRole('textbox', { name: 'Mensagem para Maria Oliveira Costa', exact: true }).fill('Rascunho fictício para testar atraso.');
+  await page.getByRole('button', { name: 'Enviar mensagem', exact: true }).click();
+  await reached;
+  await page.locator('#conversa-item-pac-001').click();
+  result.otherPatientEditable = await page.getByRole('textbox', { name: 'Mensagem para José Pereira da Silva', exact: true }).isEditable();
+  await fail();
+  await page.waitForFunction(() => !document.querySelector('#chat-paciente-pac-001 input')?.disabled);
+  result.noErrorInOtherPatient = await page.locator('#chat-paciente-pac-001 [role="status"]').count() === 0;
+  await page.unroute('**/api/pro/pacientes/pac-maria/mensagens');
+  await page.addInitScript(() => {
+    window.__rotina = { streams: [], contexts: [] };
+    Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { configurable: true, value: async () => {
+      const audio = new AudioContext(); const oscillator = audio.createOscillator(); const destination = audio.createMediaStreamDestination();
+      oscillator.connect(destination); oscillator.start(); await audio.resume();
+      window.__rotina.contexts.push(audio); window.__rotina.streams.push(destination.stream); return destination.stream;
+    }});
+    speechSynthesis.speak = () => {};
+    speechSynthesis.cancel = () => {};
+  });
+  await page.route('**/api/transcrever-audio', r => r.fulfill({ json: { sucesso: true, transcricao: 'Como será meu próximo exame?' } }));
+  await page.goto(`${base}/paciente`);
+  await page.getByRole('button', { name: /Falar com a Lia/ }).click();
+  await page.getByRole('button', { name: 'Começar a falar', exact: true }).click();
+  await page.getByRole('button', { name: 'Parar e transcrever', exact: true }).waitFor();
+  await page.goBack();
+  await page.getByRole('heading', { name: 'Olá, Maria.', exact: true }).waitFor();
+  result.browserBackStopsMic = await page.evaluate(() => window.__rotina.streams.every(s => s.getTracks().every(t => t.readyState === 'ended')));
+  await page.getByRole('button', { name: /Falar com a Lia/ }).click();
+  await page.getByRole('button', { name: 'Começar a falar', exact: true }).click();
+  await page.getByRole('button', { name: 'Parar e transcrever', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Revise antes de enviar', exact: true }).waitFor();
+  let release;
+  const requested = new Promise(resolve => page.route('**/api/paciente/conversa', route => { release = () => route.continue(); resolve(); }));
+  await page.getByRole('button', { name: 'Enviar mensagem', exact: true }).click();
+  await requested;
+  result.reviewLockedDuringSend = !(await page.getByRole('textbox', { name: 'Revise antes de enviar', exact: true }).isEditable());
+  result.rerecordLockedDuringSend = await page.getByRole('button', { name: 'Gravar novamente', exact: true }).isDisabled();
+  await release();
+  await page.getByRole('textbox', { name: 'Revise antes de enviar', exact: true }).waitFor({ state: 'detached' });
+  await page.unroute('**/api/paciente/conversa'); await page.unroute('**/api/transcrever-audio');
+  await page.evaluate(() => window.__rotina.contexts.filter(c => c.state !== 'closed').forEach(c => c.close()));
+  if (!Object.values(result).every(Boolean)) throw new Error(JSON.stringify(result));
+  return result;
+}

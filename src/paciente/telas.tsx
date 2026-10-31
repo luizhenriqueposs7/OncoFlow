@@ -34,6 +34,7 @@ import { ROTULO_OPCAO_CHECKIN } from '../types';
 import { LogoOncoFlow } from '../components/LogoOncoFlow';
 import { AvisoUrgencia } from './AvisoUrgencia';
 import { OrbeLia } from './OrbeLia';
+import { LembreteDialog } from './LembreteDialog';
 import { dataCurta, diaDaSemana, diaEHora, porExtenso } from './formato';
 
 export type Tela = 'inicio' | 'jornada' | 'como-estou' | 'agenda' | 'documentos' | 'lia';
@@ -127,6 +128,7 @@ export const TelaInicio: React.FC<{ inicio: InicioPaciente; irPara: (t: Tela) =>
         </div>)}
       </section>}
 
+      {inicio.solicitacoes.length > 0 && <details className="patient-home-requests"><summary className="font-semibold cursor-pointer min-h-11">Histórico dos meus pedidos</summary>{inicio.solicitacoes.map(s => <div key={s.id}><p className="font-semibold">{s.titulo}</p><p className="text-sm">{ROTULO_SOLICITACAO[s.estado]}</p><p className="text-sm text-tinta-suave">{porExtenso(s.criadaEm)}</p></div>)}</details>}
       <p className="patient-demo-note"><Info size={13} aria-hidden />Demonstração com dados fictícios.</p>
       <div className="patient-lia-dock">
         <button type="button" onClick={() => irPara('lia')} className="patient-lia-button">
@@ -201,9 +203,15 @@ export const TelaAgenda: React.FC<{
   onVoltar: () => void;
   onOuvir: (t: string) => void;
   onPedirLia: (texto: string) => void;
-}> = ({ inicio, onVoltar, onOuvir, onPedirLia }) => (
+  onCriarLembrete: (id: string, minutos: number) => Promise<unknown>;
+  ocupado: boolean;
+}> = ({ inicio, onVoltar, onOuvir, onPedirLia, onCriarLembrete, ocupado }) => {
+  const [paraLembrar, setParaLembrar] = useState<Compromisso | null>(null);
+  const [salvo, setSalvo] = useState(false);
+  return (
   <div className="space-y-4">
     <Cabecalho titulo="Minha agenda" onVoltar={onVoltar} />
+    {salvo && <p role="status" className="rounded-xl bg-gelo p-4 text-azul">Lembrete salvo na sua agenda.</p>}
     {inicio.agenda.length === 0 && <p className="text-azul">Nenhum compromisso marcado.</p>}
     {inicio.agenda.map((c: Compromisso) => (
       <article key={c.id} className="rounded-2xl bg-white border border-linha p-4 space-y-2">
@@ -223,13 +231,13 @@ export const TelaAgenda: React.FC<{
             </div>
           </details>
         )}
-        <button
+        <div className="agenda-actions"><button type="button" className="work-secondary" disabled={ocupado || inicio.lembretes.some(l => l.compromissoId === c.id)} onClick={() => { setSalvo(false); setParaLembrar(c); }}><Bell size={18} aria-hidden />{inicio.lembretes.some(l => l.compromissoId === c.id) ? 'Lembrete criado' : 'Criar lembrete'}</button><button
           type="button"
           onClick={() => onPedirLia(c.tipo === 'exame' ? 'Não posso ir ao exame.' : 'Não posso ir à consulta.')}
           className="min-h-11 px-3 rounded-xl border border-linha text-azul font-semibold cursor-pointer"
         >
           Não posso ir
-        </button>
+        </button></div>
       </article>
     ))}
     {inicio.lembretes.length > 0 && (
@@ -245,8 +253,10 @@ export const TelaAgenda: React.FC<{
         ))}
       </section>
     )}
+    {paraLembrar && <LembreteDialog compromisso={paraLembrar} onCriar={onCriarLembrete} onFechar={() => setParaLembrar(null)} onConcluido={() => { setParaLembrar(null); setSalvo(true); }} />}
   </div>
 );
+};
 
 // ---------------------------------------------------------------------------
 // Meus documentos

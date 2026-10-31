@@ -19,7 +19,8 @@ import {
   Smartphone,
   Info,
 } from 'lucide-react';
-import type { Mensagem, PacientePro, StatusResultado, UsuarioEquipe } from '../types';
+import type { Mensagem, PacientePro, Pendencia, StatusResultado, UsuarioEquipe } from '../types';
+import { useRascunhoPro } from './RascunhosPro';
 import type { AcoesPro } from '../api/pro';
 import { BadgeSituacao } from './Pendencias';
 import { OrbeMini } from './OrbeMini';
@@ -38,6 +39,7 @@ interface ChatViewProps {
   minutosRetornoLia: number;
   onFechar?: () => void;
   onVerPlano?: () => void;
+  contexto?: Pendencia;
 }
 
 const MarcadorSistema: React.FC<{ msg: Mensagem }> = ({ msg }) => {
@@ -97,8 +99,15 @@ export const ChatView: React.FC<ChatViewProps> = ({
   minutosRetornoLia,
   onFechar,
   onVerPlano,
+  contexto,
 }) => {
-  const [novoTexto, setNovoTexto] = useState('');
+  const chaveRascunho = `${paciente.id}:${contexto?.id ?? 'geral'}`;
+  const rascunho = useRascunhoPro(chaveRascunho);
+  const novoTexto = rascunho.texto;
+  const setNovoTexto = rascunho.definir;
+  const [envios, setEnvios] = useState<Record<string, 'enviando' | 'erro' | 'ok'>>({});
+  const enviando = envios[chaveRascunho] === 'enviando';
+  const falha = envios[chaveRascunho] === 'erro';
   const fimRef = useRef<HTMLDivElement>(null);
   const comLia = paciente.modoConversa === 'lia';
 
@@ -110,8 +119,11 @@ export const ChatView: React.FC<ChatViewProps> = ({
     e.preventDefault();
     const texto = novoTexto.trim();
     if (!texto) return;
-    setNovoTexto('');
-    await acoes.enviar(paciente.id, texto);
+    if (enviando) return;
+    setEnvios(atual => ({ ...atual, [chaveRascunho]: 'enviando' }));
+    const ok = await acoes.enviar(paciente.id, texto, contexto?.id);
+    if (ok) rascunho.limparSeIgual(novoTexto);
+    setEnvios(atual => ({ ...atual, [chaveRascunho]: ok ? 'ok' : 'erro' }));
   };
 
   const handleVideochamada = async () => {
@@ -307,6 +319,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
         </a>
       </div>
 
+      {contexto && <div className="reply-context"><strong>Resposta vinculada: {contexto.titulo}</strong><span>A conclusão da tarefa é registrada separadamente na fila.</span></div>}
+      {falha && <p role="status" className="send-error">A mensagem não foi enviada. O rascunho foi mantido para você tentar novamente.</p>}
       <form onSubmit={handleEnviar} className="p-3 bg-white border-t border-linha flex items-center gap-2">
         <label htmlFor={`input-msg-${paciente.id}`} className="sr-only">
           Mensagem para {paciente.nome}
@@ -315,15 +329,16 @@ export const ChatView: React.FC<ChatViewProps> = ({
           id={`input-msg-${paciente.id}`}
           type="text"
           value={novoTexto}
+          disabled={enviando}
           onChange={(e) => setNovoTexto(e.target.value)}
           placeholder={comLia ? 'Digite uma mensagem (você assume a conversa ao enviar)…' : 'Digite sua mensagem para o paciente…'}
-          className="flex-1 px-3.5 py-2.5 text-xs sm:text-sm border border-linha rounded-lg focus:outline-none focus:ring-2 focus:ring-verde text-azul bg-fundo"
+          className="flex-1 min-w-0 px-3.5 py-2.5 text-sm border border-linha rounded-lg focus:outline-none focus:ring-2 focus:ring-verde text-azul bg-fundo"
         />
         <button
           type="submit"
           id={`btn-enviar-msg-${paciente.id}`}
-          disabled={!novoTexto.trim()}
-          aria-label="Enviar mensagem"
+          disabled={!novoTexto.trim() || enviando}
+          aria-label={falha ? 'Tentar enviar novamente' : enviando ? 'Enviando mensagem' : 'Enviar mensagem'}
           className="flex items-center justify-center w-10 h-10 rounded-lg bg-verde hover:bg-verde-escuro disabled:opacity-40 disabled:cursor-not-allowed text-white cursor-pointer shrink-0"
         >
           <Send className="w-4 h-4" aria-hidden />

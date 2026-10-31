@@ -6,6 +6,8 @@ import { AlertCircle, X } from 'lucide-react';
 import { transcrever, usePaciente } from './api';
 import { useFala, useGravador } from './voz';
 import { TelaAgenda, TelaComoEstou, TelaDocumentos, TelaInicio, TelaJornada, type Tela } from './telas';
+import { Dialogo } from '../components/Dialogo';
+import { useUrlEscolha, useUrlParam, navegarUrl } from '../lib/navegacao';
 import { TelaLia } from './TelaLia';
 
 type TamanhoFonte = 'normal' | 'grande' | 'muito-grande';
@@ -30,11 +32,13 @@ function lerPreferencias(): Preferencias {
 }
 
 export default function PacienteApp() {
-  const { inicio, erro, ocupado, enviar, responder, checkin } = usePaciente();
+  const { inicio, erro, ocupado, enviar, responder, checkin, criarLembrete } = usePaciente();
   const gravador = useGravador();
   const fala = useFala();
-  const [tela, setTela] = useState<Tela>('inicio');
-  const [documentoId, setDocumentoId] = useState<string | null>(null);
+  const [tela, setTela] = useUrlEscolha<Tela>('tela', ['inicio','jornada','como-estou','agenda','documentos','lia'], 'inicio');
+  const [documento, setDocumento] = useUrlParam('documento');
+  const documentoId = documento || null;
+  const setDocumentoId = (id: string | null) => setDocumento(id ?? '');
   const [prefs, setPrefs] = useState<Preferencias>(lerPreferencias);
   const [prefsAbertas, setPrefsAbertas] = useState(false);
   const [transcrevendo, setTranscrevendo] = useState(false);
@@ -111,6 +115,9 @@ export default function PacienteApp() {
     cancelar: cancelarVoz,
   };
 
+  // Browser Back/Forward changes URL without calling irPara: stop voice there too.
+  useEffect(() => { fala.parar(); cancelarVoz(); }, [tela, documentoId, fala.parar, cancelarVoz]);
+
   const pedirLia = (texto: string) => {
     irPara('lia', 'texto');
     enviar(texto, 'texto');
@@ -133,7 +140,7 @@ export default function PacienteApp() {
         ) : tela === 'jornada' ? (
           <TelaJornada inicio={inicio} onVoltar={() => irPara('inicio')} />
         ) : tela === 'agenda' ? (
-          <TelaAgenda inicio={inicio} onVoltar={() => irPara('inicio')} onOuvir={falar} onPedirLia={pedirLia} />
+          <TelaAgenda inicio={inicio} onVoltar={() => irPara('inicio')} onOuvir={falar} onPedirLia={pedirLia} onCriarLembrete={criarLembrete} ocupado={ocupado} />
         ) : tela === 'documentos' ? (
           <TelaDocumentos
             inicio={inicio}
@@ -161,8 +168,8 @@ export default function PacienteApp() {
             responder={responder}
             irPara={irPara}
             abrirDocumento={(id) => {
-              setDocumentoId(id);
-              irPara('documentos');
+              navegarUrl({ documento: id, tela: 'documentos' });
+              fala.parar(); cancelarVoz();
             }}
             fala={falaComVelocidade}
             lerRespostas={prefs.lerRespostas}
@@ -172,17 +179,8 @@ export default function PacienteApp() {
       </div>
 
       {prefsAbertas && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="titulo-prefs">
+        <Dialogo titulo="Leitura e voz" onFechar={() => setPrefsAbertas(false)}>
           <div className="w-full max-w-[440px] bg-white rounded-t-3xl sm:rounded-3xl p-5 pb-[max(20px,env(safe-area-inset-bottom))] space-y-5">
-            <div className="flex items-center justify-between">
-              <h2 id="titulo-prefs" className="text-lg font-bold text-azul">
-                Leitura e voz
-              </h2>
-              <button type="button" onClick={() => setPrefsAbertas(false)} aria-label="Fechar" className="min-w-11 min-h-11 flex items-center justify-center cursor-pointer">
-                <X className="w-6 h-6" aria-hidden />
-              </button>
-            </div>
-
             <fieldset className="space-y-2">
               <legend className="font-semibold text-azul mb-1">Tamanho do texto</legend>
               {(
@@ -235,7 +233,7 @@ export default function PacienteApp() {
             </label>
             {!fala.disponivel && <p className="text-sm text-tinta-suave">Este navegador não oferece leitura em voz alta.</p>}
           </div>
-        </div>
+        </Dialogo>
       )}
     </div>
   );

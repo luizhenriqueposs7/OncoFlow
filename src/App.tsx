@@ -9,7 +9,11 @@ import { chamarApi, useEstadoPro } from './api/pro';
 import { LoginView } from './components/LoginView';
 import { Sidebar, NavegacaoCompacta, type PaginaPro } from './components/Sidebar';
 import { Topo } from './components/Topo';
-import { Indicadores } from './components/Indicadores';
+import { MeuDia } from './components/MeuDia';
+import { NovaTarefaDialog } from './components/NovaTarefaDialog';
+import { RascunhosProProvider } from './components/RascunhosPro';
+import { navegarUrl, useUrlEscolha, useUrlParam } from './lib/navegacao';
+import { FILTROS_FILA } from './lib/rotina';
 import { ListaPacientes } from './components/ListaPacientes';
 import { DetalhePaciente } from './components/DetalhePaciente';
 import { PaginaPendencias } from './components/PaginaPendencias';
@@ -38,10 +42,12 @@ function salvarUsuario(id: string | null): void {
 export default function App() {
   const [usuarios, setUsuarios] = useState<UsuarioEquipe[]>([]);
   const [usuarioLogado, setUsuarioLogado] = useState<UsuarioEquipe | null>(null);
-  const [pagina, setPagina] = useState<PaginaPro>('inicio');
-  const [pacienteSelecionadoId, setPacienteSelecionadoId] = useState<string>('');
-  const [busca, setBusca] = useState('');
-  const [somenteSinais, setSomenteSinais] = useState(false);
+  const [pagina, setPagina] = useUrlEscolha<PaginaPro>('pagina', ['inicio','pacientes','pendencias','comunicacao'], 'inicio');
+  const [pacienteSelecionadoId, setPacienteSelecionadoId] = useUrlParam('paciente');
+  const [busca, setBusca] = useUrlParam('busca');
+  const [filtro, setFiltro] = useUrlEscolha('fila', FILTROS_FILA, 'todas');
+  const [novaTarefa, setNovaTarefa] = useState(false);
+  const [erroLogin, setErroLogin] = useState(false);
 
   useEffect(() => {
     chamarApi<{ usuarios: UsuarioEquipe[] }>('/api/demo/usuarios')
@@ -50,15 +56,11 @@ export default function App() {
         const salvo = lista.find((u) => u.id === lerUsuarioSalvo());
         if (salvo) setUsuarioLogado(salvo);
       })
-      .catch(() => setUsuarios([]));
+      .catch(() => { setUsuarios([]); setErroLogin(true); });
   }, []);
 
   const { estado, erro, acoes } = useEstadoPro(usuarioLogado);
   const pacientes = estado?.pacientes ?? [];
-
-  useEffect(() => {
-    if (!pacienteSelecionadoId && pacientes[0]) setPacienteSelecionadoId(pacientes[0].id);
-  }, [pacientes, pacienteSelecionadoId]);
 
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
@@ -81,8 +83,7 @@ export default function App() {
   };
 
   const buscar = (texto: string) => {
-    setBusca(texto);
-    if (pagina === 'pendencias' || pagina === 'comunicacao') setPagina('pacientes');
+    navegarUrl({ pagina: 'pacientes', busca: texto, solicitacao: null }, pagina === 'pacientes');
   };
 
   const entrar = (usuario: UsuarioEquipe) => {
@@ -95,7 +96,12 @@ export default function App() {
     setUsuarioLogado(null);
   };
 
+  const abrirPaciente = (id: string, aba = 'resumo', pendenciaId?: string) => {
+    navegarUrl({ pagina: 'pacientes', paciente: id, aba, solicitacao: pendenciaId ?? null, busca: null });
+    window.scrollTo({ top: 0 });
+  };
   if (!usuarioLogado) {
+    if (erroLogin) return <main className="work-empty"><h1>Não foi possível carregar os perfis.</h1><p>Confira sua conexão e tente novamente.</p><button type="button" className="work-primary" onClick={() => window.location.reload()}>Tentar novamente</button></main>;
     return <LoginView usuarios={usuarios} onLogin={entrar} />;
   }
 
@@ -117,6 +123,7 @@ export default function App() {
             usuarioAtual={usuarioLogado}
             acoes={acoes}
             minutosRetornoLia={estado!.minutosRetornoLia}
+            onNovaTarefa={() => setNovaTarefa(true)}
           />
         ) : (
           <p className="text-tinta-suave">Selecione um paciente.</p>
@@ -126,7 +133,7 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-fundo text-azul md:flex">
+    <RascunhosProProvider key={usuarioLogado.id}><div className="min-h-screen bg-fundo text-azul md:flex">
       <Sidebar
         pagina={pagina}
         onNavegar={navegar}
@@ -157,23 +164,13 @@ export default function App() {
           {!estado ? (
             <p className="text-tinta-suave">Carregando pacientes…</p>
           ) : pagina === 'inicio' ? (
-            <>
-              <Indicadores
-                pacientes={pacientes}
-                onAbrir={(destino) => {
-                  if (destino === 'pacientes') navegar('pacientes');
-                  else {
-                    setSomenteSinais(destino === 'sinais');
-                    navegar('pendencias');
-                  }
-                }}
-              />
-              {listaEDetalhe(5)}
-            </>
+            <MeuDia estado={estado} usuario={usuarioLogado} filtro={filtro} onFiltrar={setFiltro}
+              onNovaTarefa={() => setNovaTarefa(true)} onAbrir={abrirPaciente}
+              onVerFila={() => navegar('pendencias')} onVerPacientes={() => navegar('pacientes')} />
           ) : pagina === 'pacientes' ? (
             listaEDetalhe()
           ) : pagina === 'pendencias' ? (
-            <PaginaPendencias estado={estado} acoes={acoes} somenteSinais={somenteSinais} onAlternarFiltro={setSomenteSinais} />
+            <PaginaPendencias estado={estado} acoes={acoes} usuario={usuarioLogado} filtro={filtro} onFiltrar={setFiltro} onAbrir={abrirPaciente} onNovaTarefa={() => setNovaTarefa(true)} />
           ) : (
             <div>
               <InternoView
@@ -181,13 +178,13 @@ export default function App() {
                 usuarioAtual={usuarioLogado}
                 acoes={acoes}
                 minutosRetornoLia={estado.minutosRetornoLia}
-                pacienteSelecionadoId={pacienteSelecionadoId}
+                pacienteSelecionadoId={pacienteSelecionadoId || pacientes[0]?.id}
                 onSelecionarPaciente={setPacienteSelecionadoId}
               />
             </div>
           )}
         </main>
       </div>
-    </div>
+    </div>{novaTarefa && estado && <NovaTarefaDialog pacientes={pacientes} usuarios={estado.usuarios} usuarioAtual={usuarioLogado} pacienteInicial={pagina === 'pacientes' ? selecionado?.id : undefined} onSalvar={acoes.criarTarefa} onFechar={() => setNovaTarefa(false)} />}</RascunhosProProvider>
   );
 }

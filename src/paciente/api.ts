@@ -11,7 +11,7 @@ async function chamar<T>(caminho: string, corpo?: unknown): Promise<T> {
     method: corpo === undefined ? 'GET' : 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${SESSAO_DEMO}` },
     body: corpo === undefined ? undefined : JSON.stringify(corpo),
-  });
+  }).catch(() => { throw new Error('Não foi possível conectar. Sua mensagem continua aqui; tente novamente.'); });
   const dados = await resposta.json().catch(() => ({}));
   if (!resposta.ok) throw new Error(dados.mensagem || 'Não conseguimos concluir agora. Tente de novo em instantes.');
   return dados as T;
@@ -20,6 +20,8 @@ async function chamar<T>(caminho: string, corpo?: unknown): Promise<T> {
 export function usePaciente() {
   const [inicio, setInicio] = useState<InicioPaciente | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [erroLeitura, setErroLeitura] = useState<string | null>(null);
+  const operando = useRef(false);
   const [ocupado, setOcupado] = useState(false);
   const versao = useRef(0);
 
@@ -31,10 +33,10 @@ export function usePaciente() {
   const atualizar = useCallback(async () => {
     try {
       const novo = await chamar<InicioPaciente>('/api/paciente/inicio');
-      setErro(null);
+      setErroLeitura(null);
       if (novo.versao !== versao.current) aplicar(novo);
     } catch {
-      setErro('Sem conexão agora. Tentando de novo…');
+      setErroLeitura('Sem conexão agora. Tentando de novo…');
     }
   }, [aplicar]);
 
@@ -46,6 +48,8 @@ export function usePaciente() {
 
   const comOcupado = useCallback(
     async <T,>(fn: () => Promise<T>): Promise<T | null> => {
+      if (operando.current) return null;
+      operando.current = true;
       setOcupado(true);
       try {
         const resultado = await fn();
@@ -55,6 +59,7 @@ export function usePaciente() {
         setErro((e as Error).message);
         return null;
       } finally {
+        operando.current = false;
         setOcupado(false);
       }
     },
@@ -63,13 +68,13 @@ export function usePaciente() {
 
   const enviar = useCallback(
     (texto: string, origem: 'texto' | 'voz') =>
-      comOcupado(async () => aplicar(await chamar<InicioPaciente>('/api/paciente/conversa', { texto, origem }))),
+      comOcupado(async () => { aplicar(await chamar<InicioPaciente>('/api/paciente/conversa', { texto, origem })); return true; }),
     [aplicar, comOcupado]
   );
 
   const responder = useCallback(
     (token: string, aceitar: boolean) =>
-      comOcupado(async () => aplicar(await chamar<InicioPaciente>('/api/paciente/conversa/confirmar', { token, aceitar }))),
+      comOcupado(async () => { aplicar(await chamar<InicioPaciente>('/api/paciente/conversa/confirmar', { token, aceitar })); return true; }),
     [aplicar, comOcupado]
   );
 
@@ -87,7 +92,11 @@ export function usePaciente() {
     [aplicar, comOcupado]
   );
 
-  return { inicio, erro, ocupado, enviar, responder, checkin };
+  const criarLembrete = useCallback((compromissoId: string, antecedenciaMinutos: number) => comOcupado(async () => {
+    aplicar(await chamar<InicioPaciente>('/api/paciente/lembretes', { compromissoId, antecedenciaMinutos }));
+    return true;
+  }), [aplicar, comOcupado]);
+  return { inicio, erro: erro ?? erroLeitura, ocupado, enviar, responder, checkin, criarLembrete };
 }
 
 export async function transcrever(audioBase64: string, mimeType: string): Promise<string | null> {

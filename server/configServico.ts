@@ -74,6 +74,7 @@ export const CONFIG_SERVICO: ConfigServico = {
   quemVe:
     'Sua equipe de cuidado (médica, enfermagem e navegação) pode ver esta conversa e seus check-ins para organizar o seu acompanhamento. As respostas da equipe seguem o horário e os prazos do serviço.',
   prazoHorasPorTipo: {
+    tarefa: 24,
     sinal_urgencia: 4,
     checkin: 24,
     contato_equipe: 24,
@@ -81,6 +82,7 @@ export const CONFIG_SERVICO: ConfigServico = {
     duvida: 48,
   },
   papelPorTipo: {
+    tarefa: 'navegacao',
     sinal_urgencia: 'enfermagem',
     checkin: 'enfermagem',
     contato_equipe: 'enfermagem',

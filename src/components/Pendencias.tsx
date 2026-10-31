@@ -22,6 +22,7 @@ import type {
 import { ROTULO_DESFECHO } from '../types';
 
 export const ROTULO_TIPO: Record<TipoPendencia, string> = {
+  tarefa: 'Tarefa da equipe',
   sinal_urgencia: 'Possível sinal de urgência',
   checkin: 'Check-in',
   contato_equipe: 'Pedido de contato',
@@ -35,7 +36,8 @@ export const ROTULO_PAPEL: Record<PapelEquipe, string> = {
   navegacao: 'Navegação',
 };
 
-const ROTULO_ORIGEM: Record<OrigemPendencia, string> = {
+export const ROTULO_ORIGEM: Record<OrigemPendencia, string> = {
+  acao_equipe: 'Criada pela equipe',
   hipotese_sistema: 'Hipótese do sistema · aguardando revisão',
   solicitacao_paciente: 'Pedido confirmado pelo paciente',
   regra_servico: 'Regra do serviço',
@@ -99,9 +101,11 @@ interface PendenciaItemProps {
   nomePaciente?: string;
   onAssumir: (id: string) => void;
   onConcluir: (id: string, desfecho: Desfecho) => void;
+  onAbrir?: () => void;
+  onResponder?: () => void;
 }
 
-export const PendenciaItem: React.FC<PendenciaItemProps> = ({ pendencia, nomePaciente, onAssumir, onConcluir }) => {
+export const PendenciaItem: React.FC<PendenciaItemProps> = ({ pendencia, nomePaciente, onAssumir, onConcluir, onAbrir, onResponder }) => {
   const [desfecho, setDesfecho] = useState<Desfecho | ''>('');
   const concluida = pendencia.estado === 'concluida';
   const prazo = descreverPrazo(pendencia.prazo);
@@ -168,6 +172,10 @@ export const PendenciaItem: React.FC<PendenciaItemProps> = ({ pendencia, nomePac
         </span>
       </div>
 
+      {(onAbrir || onResponder) && <div className="task-actions">
+        {onAbrir && <button type="button" className="work-secondary" onClick={onAbrir}>Abrir paciente</button>}
+        {onResponder && <button type="button" className="work-link" onClick={onResponder}>Responder à solicitação</button>}
+      </div>}
       {concluida ? (
         <div className="flex items-center gap-1.5 text-azul font-semibold">
           <CheckCircle2 className="w-3.5 h-3.5 text-verde" aria-hidden />
