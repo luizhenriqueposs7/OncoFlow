@@ -65,6 +65,11 @@ export function visaoPaciente(paciente: Paciente): InicioPaciente {
         titulo: p.tipo === 'sinal_urgencia' ? 'Relato para a equipe de enfermagem' : p.titulo,
         estado: estadoParaPaciente(p),
         criadaEm: p.criadaEm,
+        tipo: p.tipo,
+        categoriaBarreira: p.barreira?.categoria,
+        etapa: p.barreira?.etapa,
+        responsavel: p.tipo === 'barreira' ? (p.concluidaPor ?? p.responsavel) : undefined,
+        solucao: p.tipo === 'barreira' && p.estado === 'concluida' ? p.solucao : undefined,
       })),
     proposta: proposta
       ? {

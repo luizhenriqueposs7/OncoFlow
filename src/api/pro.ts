@@ -27,7 +27,7 @@ export interface AcoesPro {
   atualizarPlano: (pacienteId: string, texto: string, atualizadoEm: string) => Promise<void>;
   videochamada: (pacienteId: string) => Promise<string | undefined>;
   assumirPendencia: (pendenciaId: string) => Promise<void>;
-  concluirPendencia: (pendenciaId: string, desfecho: Desfecho) => Promise<void>;
+  concluirPendencia: (pendenciaId: string, desfecho: Desfecho, solucao?: string) => Promise<void>;
   resetarDemo: () => Promise<void>;
 }
 
@@ -88,7 +88,7 @@ export function useEstadoPro(usuario: UsuarioEquipe | null) {
       }
     },
     assumirPendencia: (id) => acao(`/api/pro/pendencias/${id}/assumir`),
-    concluirPendencia: (id, desfecho) => acao(`/api/pro/pendencias/${id}/concluir`, { desfecho }),
+    concluirPendencia: (id, desfecho, solucao) => acao(`/api/pro/pendencias/${id}/concluir`, { desfecho, solucao }),
     resetarDemo: () => acao('/api/demo/reset'),
   };
 

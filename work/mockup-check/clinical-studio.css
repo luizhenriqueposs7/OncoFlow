@@ -1,0 +1,120 @@
+    #oncoflow-medical-mocks { --oc-ground:light-dark(#edf3f5,#0f1d28); --oc-ink:light-dark(#173d4b,#e5eef3); --oc-line:light-dark(#d9e5e9,#334856); --oc-accent:light-dark(#116f68,#88d7cb); --oc-soft:light-dark(#e9f4f1,#193b39); --oc-quiet:light-dark(#f5f8f9,#192c3a); font-family:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif; }
+    #oncoflow-medical-mocks .oc-stage { min-height:1080px; }
+    #oncoflow-medical-mocks button { touch-action:manipulation; }
+    #oncoflow-medical-mocks h1 { font-size:26px; font-weight:500; letter-spacing:-.7px; text-wrap:balance; }
+    #oncoflow-medical-mocks h2 { font-size:19px; font-weight:500; letter-spacing:-.25px; }
+    #oncoflow-medical-mocks .oc-topbar { min-height:80px; padding:18px 106px 18px 30px; background:var(--oc-nav); color:var(--oc-nav-ink); gap:30px; }
+    #oncoflow-medical-mocks .oc-topbar .oc-brand { font-family:Inter,ui-sans-serif,system-ui,sans-serif; font-size:21px; }
+    #oncoflow-medical-mocks .oc-topbar .oc-brand small { display:none; }
+    #oncoflow-medical-mocks .oc-topbar .oc-unit { color:var(--oc-nav-ink); border-left-color:light-dark(#45616f,#45616f); font-size:13px; }
+    #oncoflow-medical-mocks .oc-account { display:flex; align-items:center; gap:10px; white-space:normal; }
+    #oncoflow-medical-mocks .oc-account small { display:block; font-size:11px; margin-top:3px; color:var(--oc-nav-ink); }
+    #oncoflow-medical-mocks .oc-tabs { gap:30px; padding:0 30px; }
+    #oncoflow-medical-mocks .oc-tabs button { display:inline-flex; align-items:center; gap:8px; padding:15px 0 13px; font-size:14px; }
+    #oncoflow-medical-mocks .oc-nav-count { border-radius:4px; padding:0 5px; background:var(--oc-quiet); font-size:12px; }
+    #oncoflow-medical-mocks .oc-body { padding:30px; }
+    #oncoflow-medical-mocks .oc-page-title { align-items:center; margin-bottom:28px; }
+    #oncoflow-medical-mocks .oc-page-title p { font-size:13px; margin-top:7px; }
+    #oncoflow-medical-mocks .oc-search { width:220px; padding:10px 12px; }
+    #oncoflow-medical-mocks .oc-list-grid { grid-template-columns:minmax(0,1fr) 304px; gap:26px; }
+    #oncoflow-medical-mocks .oc-list-grid.oc-no-detail { grid-template-columns:minmax(0,1fr); }
+    #oncoflow-medical-mocks .oc-worklist { min-width:0; }
+    #oncoflow-medical-mocks .oc-worklist-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:18px; }
+    #oncoflow-medical-mocks .oc-worklist-toolbar .oc-filter-row { margin:0; }
+    #oncoflow-medical-mocks .oc-filter-row button { border-color:transparent; background:transparent; padding:6px 9px; }
+    #oncoflow-medical-mocks .oc-filter-row button:hover { background:var(--oc-paper); border-color:var(--oc-line); }
+    #oncoflow-medical-mocks .oc-filter-row button[aria-pressed=true] { background:var(--oc-paper); border-color:var(--oc-line); color:var(--oc-ink); box-shadow:0 1px 2px light-dark(#173d4b0d,#00000000); }
+    #oncoflow-medical-mocks .oc-clinical-table { table-layout:fixed; }
+    #oncoflow-medical-mocks .oc-clinical-table th { background:transparent; padding:11px 12px; border-top:0; }
+    #oncoflow-medical-mocks .oc-clinical-table th:first-child { width:43%; }
+    #oncoflow-medical-mocks .oc-clinical-table th:nth-child(2) { width:32%; }
+    #oncoflow-medical-mocks .oc-clinical-table th:last-child { width:25%; }
+    #oncoflow-medical-mocks .oc-clinical-table td { padding:calc(var(--oc-row-pad) + 4px) 12px; overflow-wrap:anywhere; }
+    #oncoflow-medical-mocks .oc-name { font-size:14px; }
+    #oncoflow-medical-mocks .oc-cell-detail { font-size:12px; }
+    #oncoflow-medical-mocks .oc-care-stage { display:flex; align-items:flex-start; gap:6px; color:var(--oc-accent); font-size:12px; margin-top:12px; }
+    #oncoflow-medical-mocks .oc-care-stage svg { width:13px; height:17px; }
+    #oncoflow-medical-mocks .oc-date { display:flex; align-items:center; flex-wrap:wrap; gap:5px; font-variant-numeric:tabular-nums; }
+    #oncoflow-medical-mocks .oc-date svg { width:13px; }
+    #oncoflow-medical-mocks .oc-label { align-items:flex-start; gap:5px; }
+    #oncoflow-medical-mocks .oc-list-note { display:flex; align-items:flex-start; gap:7px; padding-top:17px; color:var(--oc-muted); font-size:12px; }
+    #oncoflow-medical-mocks .oc-context { padding:22px; border:1px solid var(--oc-line); border-radius:8px; }
+    #oncoflow-medical-mocks .oc-context-top { padding-bottom:20px; }
+    #oncoflow-medical-mocks .oc-context-top h2 { margin:9px 0 7px; font-size:22px; }
+    #oncoflow-medical-mocks .oc-context-top p { font-size:13px; }
+    #oncoflow-medical-mocks .oc-next-visit { display:flex; align-items:flex-start; gap:10px; padding:22px 0; border-bottom:1px solid var(--oc-line); }
+    #oncoflow-medical-mocks .oc-next-visit > svg { color:var(--oc-accent); margin-top:3px; }
+    #oncoflow-medical-mocks .oc-next-visit span { display:block; font-size:12px; color:var(--oc-muted); }
+    #oncoflow-medical-mocks .oc-next-visit strong { display:block; font-size:14px; font-weight:500; margin:4px 0; }
+    #oncoflow-medical-mocks .oc-next-visit p { font-size:13px; color:var(--oc-accent); font-variant-numeric:tabular-nums; }
+    #oncoflow-medical-mocks .oc-section-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    #oncoflow-medical-mocks .oc-context .oc-section-heading { display:block; }
+    #oncoflow-medical-mocks .oc-context .oc-section-heading .oc-label { margin-top:10px; }
+    #oncoflow-medical-mocks .oc-task-title { margin-top:12px; font-weight:500; }
+    #oncoflow-medical-mocks .oc-quote { border:0; padding:0; margin:14px 0 8px; font-size:16px; line-height:1.65; overflow-wrap:anywhere; }
+    #oncoflow-medical-mocks .oc-source { display:inline-flex; align-items:center; font-size:11px; color:var(--oc-muted); }
+    #oncoflow-medical-mocks .oc-button { border-radius:5px; min-height:40px; font-size:13px; }
+    #oncoflow-medical-mocks .oc-context-actions { gap:10px; margin-top:20px; }
+    #oncoflow-medical-mocks .oc-context-actions .oc-link { margin-top:0; }
+    #oncoflow-medical-mocks .oc-station { min-height:1080px; grid-template-columns:66px 202px minmax(0,1fr); }
+    #oncoflow-medical-mocks .oc-roster-title { padding:26px 16px 20px; }
+    #oncoflow-medical-mocks .oc-roster-item { padding:22px 16px; }
+    #oncoflow-medical-mocks .oc-roster-meta { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:7px; }
+    #oncoflow-medical-mocks .oc-roster-meta small { margin:0; }
+    #oncoflow-medical-mocks .oc-roster-dot { width:6px; height:6px; border-radius:50%; background:var(--oc-accent); }
+    #oncoflow-medical-mocks .oc-roster-late { background:var(--oc-warn); }
+    #oncoflow-medical-mocks .oc-record-bar { padding:20px 104px 20px 28px; }
+    #oncoflow-medical-mocks .oc-patient-heading { padding:26px 28px 24px; }
+    #oncoflow-medical-mocks .oc-patient-heading h1 { font-size:28px; font-weight:500; margin:8px 0; }
+    #oncoflow-medical-mocks .oc-record-content { padding:26px 28px; }
+    #oncoflow-medical-mocks .oc-record .oc-tabs { padding:0 28px; gap:24px; }
+    #oncoflow-medical-mocks .oc-care-ribbon { display:grid; grid-template-columns:1fr 1.1fr 1.1fr; list-style:none; gap:20px; margin:0 0 28px; padding:20px 0; border-bottom:1px solid var(--oc-line); }
+    #oncoflow-medical-mocks .oc-care-ribbon li { display:flex; align-items:flex-start; gap:8px; font-size:11px; color:var(--oc-muted); min-width:0; }
+    #oncoflow-medical-mocks .oc-care-ribbon svg { margin-top:3px; width:15px; height:15px; }
+    #oncoflow-medical-mocks .oc-care-ribbon strong { display:block; font-size:13px; font-weight:500; color:var(--oc-ink); margin-top:5px; }
+    #oncoflow-medical-mocks .oc-care-ribbon li[aria-current=step] { color:var(--oc-accent); }
+    #oncoflow-medical-mocks .oc-overview { grid-template-columns:minmax(0,1fr) 218px; gap:28px; }
+    #oncoflow-medical-mocks .oc-clinical-definition > div { padding:18px 0; }
+    #oncoflow-medical-mocks .oc-clinical-definition dd { font-size:15px; line-height:1.65; }
+    #oncoflow-medical-mocks .oc-review-note { padding:16px; background:var(--oc-quiet); border:1px solid var(--oc-line); border-top:3px solid var(--oc-warn); border-radius:6px; margin-bottom:26px; }
+    #oncoflow-medical-mocks .oc-review-note .oc-quote { font-size:15px; }
+    #oncoflow-medical-mocks .oc-review-note .oc-button { width:100%; margin-top:18px; }
+    #oncoflow-medical-mocks .oc-team-member { display:flex; align-items:center; gap:9px; margin:15px 0; }
+    #oncoflow-medical-mocks .oc-person-mark { display:grid; place-items:center; width:29px; height:29px; border-radius:5px; font-size:10px; background:var(--oc-quiet); color:var(--oc-muted); flex-shrink:0; }
+    #oncoflow-medical-mocks .oc-team-member strong { font-size:12px; font-weight:500; display:block; }
+    #oncoflow-medical-mocks .oc-team-member small { display:block; font-size:11px; color:var(--oc-muted); }
+    #oncoflow-medical-mocks .oc-document { display:flex; align-items:flex-start; gap:14px; margin-top:22px; }
+    #oncoflow-medical-mocks .oc-document > svg { margin-top:4px; color:var(--oc-accent); }
+    #oncoflow-medical-mocks .oc-review-shell { display:grid; grid-template-columns:300px minmax(0,1fr); min-height:1000px; background:var(--oc-paper); }
+    #oncoflow-medical-mocks .oc-review-inbox { background:var(--oc-quiet); padding:26px 18px; border-right:1px solid var(--oc-line); }
+    #oncoflow-medical-mocks .oc-inbox-heading { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+    #oncoflow-medical-mocks .oc-inbox-heading h1 { font-size:21px; }
+    #oncoflow-medical-mocks .oc-inbox-heading > span { color:var(--oc-muted); font-size:13px; }
+    #oncoflow-medical-mocks .oc-review-inbox .oc-filter-row { margin:22px 0 18px; }
+    #oncoflow-medical-mocks .oc-inbox-item { display:block; width:100%; text-align:left; background:transparent; border:0; border-bottom:1px solid var(--oc-line); padding:20px 10px; border-radius:5px; }
+    #oncoflow-medical-mocks .oc-inbox-item[aria-pressed=true] { background:var(--oc-paper); box-shadow:inset 3px 0 var(--oc-accent),0 1px 3px light-dark(#173d4b0d,#00000000); }
+    #oncoflow-medical-mocks .oc-inbox-item:hover { background:var(--oc-paper); }
+    #oncoflow-medical-mocks .oc-inbox-meta { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:9px; font-size:11px; color:var(--oc-muted); }
+    #oncoflow-medical-mocks .oc-inbox-meta .oc-label { font-size:11px; }
+    #oncoflow-medical-mocks .oc-inbox-item > strong { display:block; font-size:15px; font-weight:500; margin-top:12px; }
+    #oncoflow-medical-mocks .oc-inbox-task { display:block; font-size:13px; color:var(--oc-muted); margin-top:5px; }
+    #oncoflow-medical-mocks .oc-inbox-item > small { display:block; font-size:11px; color:var(--oc-muted); margin-top:12px; }
+    #oncoflow-medical-mocks .oc-review-detail { padding:30px 38px; min-width:0; }
+    #oncoflow-medical-mocks .oc-review-detail-top { display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px; margin-bottom:25px; }
+    #oncoflow-medical-mocks .oc-review-patient { margin:30px 0 23px; padding-bottom:24px; border-bottom:1px solid var(--oc-line); }
+    #oncoflow-medical-mocks .oc-review-patient h2 { font-size:22px; }
+    #oncoflow-medical-mocks .oc-review-patient p { font-size:13px; color:var(--oc-muted); margin-top:7px; }
+    #oncoflow-medical-mocks .oc-review-task { font-size:14px; color:var(--oc-muted); font-weight:400; }
+    #oncoflow-medical-mocks .oc-review-report { margin:15px 0 12px; padding:0; border:0; font-size:25px; line-height:1.5; font-weight:400; letter-spacing:-.5px; max-width:38ch; overflow-wrap:anywhere; }
+    #oncoflow-medical-mocks .oc-review-facts { display:grid; grid-template-columns:1fr 1fr; margin:24px 0; gap:22px; }
+    #oncoflow-medical-mocks .oc-review-facts dt { color:var(--oc-muted); font-size:12px; }
+    #oncoflow-medical-mocks .oc-review-facts dd { margin:5px 0 0; font-size:14px; }
+    #oncoflow-medical-mocks .oc-review-resolution { padding-top:25px; border-top:1px solid var(--oc-line); }
+    #oncoflow-medical-mocks .oc-review-resolution form { display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end; }
+    #oncoflow-medical-mocks .oc-review-resolution .oc-form-label { flex:1 1 200px; margin:20px 0 0; }
+    #oncoflow-medical-mocks .oc-review-resolution .oc-note { margin-top:20px; border:0; }
+    #oncoflow-medical-mocks .oc-conversation p { overflow-wrap:anywhere; }
+    #oncoflow-medical-mocks .oc-footnote { font-size:11px; padding-top:28px; }
+    @media(max-width:1000px) { #oncoflow-medical-mocks .oc-overview { grid-template-columns:minmax(0,1fr); } #oncoflow-medical-mocks .oc-team-context { border-top:1px solid var(--oc-line); padding-top:22px; } #oncoflow-medical-mocks .oc-list-grid { grid-template-columns:minmax(0,1fr) 270px; gap:20px; } #oncoflow-medical-mocks .oc-body { padding:26px 22px; } }
+    @media(max-width:850px) { #oncoflow-medical-mocks .oc-stage,#oncoflow-medical-mocks .oc-station { min-height:1550px; } #oncoflow-medical-mocks .oc-list-grid { grid-template-columns:minmax(0,1fr); } #oncoflow-medical-mocks .oc-context { padding:24px; } #oncoflow-medical-mocks .oc-station { grid-template-columns:58px 166px minmax(0,1fr); } #oncoflow-medical-mocks .oc-record-content { padding:24px 20px; } #oncoflow-medical-mocks .oc-review-shell { grid-template-columns:250px minmax(0,1fr); min-height:1470px; } #oncoflow-medical-mocks .oc-review-detail { padding:26px 24px; } }
+    @media(max-width:600px) { #oncoflow-medical-mocks .oc-stage,#oncoflow-medical-mocks .oc-station { min-height:2320px; } #oncoflow-medical-mocks .oc-topbar { padding:18px 100px 18px 18px; gap:13px; } #oncoflow-medical-mocks .oc-topbar .oc-account { font-size:12px; } #oncoflow-medical-mocks .oc-account > svg { display:none; } #oncoflow-medical-mocks .oc-tabs { padding:0 18px; gap:21px; } #oncoflow-medical-mocks .oc-tabs button { font-size:13px; } #oncoflow-medical-mocks .oc-tabs button > svg { display:none; } #oncoflow-medical-mocks .oc-body { padding:24px 16px; } #oncoflow-medical-mocks h1 { font-size:24px; } #oncoflow-medical-mocks .oc-search { width:100%; } #oncoflow-medical-mocks .oc-clinical-table thead { display:none; } #oncoflow-medical-mocks .oc-clinical-table tbody { display:grid; grid-template-columns:minmax(0,1fr); } #oncoflow-medical-mocks .oc-clinical-table tr { display:grid; grid-template-columns:minmax(0,1fr) 115px; border-bottom:1px solid var(--oc-line); padding:16px 12px; gap:13px 10px; } #oncoflow-medical-mocks .oc-clinical-table td { display:block !important; padding:0; border:0; } #oncoflow-medical-mocks .oc-clinical-table td:first-child { grid-column:1; grid-row:1; } #oncoflow-medical-mocks .oc-clinical-table td:nth-child(2) { grid-column:1 / -1; grid-row:2; font-size:12px; } #oncoflow-medical-mocks .oc-clinical-table td:last-child { grid-column:2; grid-row:1; } #oncoflow-medical-mocks .oc-clinical-table tr.oc-selected { background:var(--oc-soft); box-shadow:inset 3px 0 var(--oc-accent); } #oncoflow-medical-mocks .oc-clinical-table tr.oc-selected td:first-child { box-shadow:none; } #oncoflow-medical-mocks .oc-care-stage { margin-top:7px; } #oncoflow-medical-mocks .oc-station { display:block; } #oncoflow-medical-mocks .oc-rail { gap:14px; } #oncoflow-medical-mocks .oc-record .oc-tabs { padding:0 18px; gap:20px; } #oncoflow-medical-mocks .oc-record-bar { padding:18px 100px 18px 18px; } #oncoflow-medical-mocks .oc-patient-heading { padding:24px 18px; } #oncoflow-medical-mocks .oc-patient-heading h1 { font-size:27px; } #oncoflow-medical-mocks .oc-roster-item { padding:16px; } #oncoflow-medical-mocks .oc-care-ribbon { grid-template-columns:1fr; gap:18px; } #oncoflow-medical-mocks .oc-review-shell { display:block; min-height:2240px; } #oncoflow-medical-mocks .oc-review-inbox { padding:22px 16px; border-right:0; border-bottom:1px solid var(--oc-line); } #oncoflow-medical-mocks .oc-inbox-list { display:grid; grid-template-columns:1fr; } #oncoflow-medical-mocks .oc-inbox-item { padding:16px 12px; } #oncoflow-medical-mocks .oc-review-detail { padding:26px 20px; } #oncoflow-medical-mocks .oc-review-facts { grid-template-columns:1fr; gap:16px; } #oncoflow-medical-mocks .oc-review-report { font-size:23px; } #oncoflow-medical-mocks .oc-review-resolution form .oc-button { width:100%; } }

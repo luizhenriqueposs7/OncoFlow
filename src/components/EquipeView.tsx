@@ -2,7 +2,7 @@
 // pendências com prazo e responsável; "Alertas clínicos" virou "Pendências", ordenadas por prazo.
 
 import React, { useState, useMemo } from 'react';
-import { Search, AlertTriangle, Clock, Users, ClipboardList, Filter, Stethoscope } from 'lucide-react';
+import { Search, AlertTriangle, Clock, Users, ClipboardList, Filter, Stethoscope, HandHeart } from 'lucide-react';
 import type { EstadoPro, PacientePro, SituacaoPaciente, UsuarioEquipe } from '../types';
 import type { AcoesPro } from '../api/pro';
 import { PacienteCard } from './PacienteCard';
@@ -28,7 +28,7 @@ export const EquipeView: React.FC<EquipeViewProps> = ({
   onEntrarConversa,
 }) => {
   const { pacientes } = estado;
-  const [subAba, setSubAba] = useState<'pacientes' | 'pendencias'>('pacientes');
+  const [subAba, setSubAba] = useState<'pacientes' | 'pendencias' | 'barreiras'>('pacientes');
   const [busca, setBusca] = useState('');
   const [filtro, setFiltro] = useState<SituacaoPaciente | 'todos'>('todos');
   const [chatAbertoId, setChatAbertoId] = useState<string | null>(null);
@@ -61,6 +61,9 @@ export const EquipeView: React.FC<EquipeViewProps> = ({
     pacientes.find((p) => p.id === pacienteSelecionadoId) ?? pacientesFiltrados[0] ?? pacientes[0];
   const chatPaciente = pacientes.find((p) => p.id === chatAbertoId);
   const planoPaciente = pacientes.find((p) => p.id === planoAbertoId);
+  const barreiras = pacientes.flatMap(p => p.pendencias.filter(pe => pe.tipo === 'barreira').map(pendencia => ({ pendencia, paciente: p })))
+    .sort((a, b) => Number(a.pendencia.estado === 'concluida') - Number(b.pendencia.estado === 'concluida') || a.pendencia.prazo.localeCompare(b.pendencia.prazo));
+  const barreirasAbertas = barreiras.filter(b => b.pendencia.estado !== 'concluida').length;
 
   const totalSinais = pacientes.reduce(
     (n, p) => n + p.pendencias.filter((pe) => pe.estado !== 'concluida' && pe.tipo === 'sinal_urgencia').length,
@@ -84,7 +87,14 @@ export const EquipeView: React.FC<EquipeViewProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <button type="button" onClick={() => { setSubAba('barreiras'); setFiltro('todos'); }} className={cartao(subAba === 'barreiras', 'neutro')}>
+          <div className="flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2 text-xs font-semibold text-azul"><HandHeart className="w-4 h-4 text-verde" aria-hidden />Radar de barreiras</span>
+            <span className="text-xl font-bold text-azul tabular-nums">{barreirasAbertas}</span>
+          </div>
+          <p className="text-[11px] text-tinta-suave mt-1">Dificuldades para seguir a jornada · navegação</p>
+        </button>
         <button
           type="button"
           onClick={() => {
@@ -142,11 +152,12 @@ export const EquipeView: React.FC<EquipeViewProps> = ({
 
       <div className="bg-white p-4 rounded-xl border border-linha space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div role="tablist" className="flex items-center gap-2">
+          <div role="tablist" className="flex flex-wrap items-center gap-2">
             {(
               [
                 ['pacientes', 'Pacientes', Users, pacientes.length],
                 ['pendencias', 'Pendências', ClipboardList, totalAguardando + totalSinais],
+                ['barreiras', 'Radar de barreiras', HandHeart, barreirasAbertas],
               ] as const
             ).map(([aba, rotulo, Icone, total]) => (
               <button
@@ -190,7 +201,20 @@ export const EquipeView: React.FC<EquipeViewProps> = ({
           )}
         </div>
 
-        {subAba === 'pacientes' ? (
+        {subAba === 'barreiras' ? (
+          <section aria-label="Radar de barreiras" className="space-y-3">
+            <div className="rounded-xl bg-gelo p-4 space-y-1">
+              <h2 className="text-lg font-bold text-azul">O que impede a próxima etapa?</h2>
+              <p className="text-sm text-tinta-suave">{barreirasAbertas} abertas · {barreiras.length - barreirasAbertas} resolvidas. Relatos confirmados pelos pacientes, para validação da navegação.</p>
+              <p className="text-xs text-tinta-suave">Receber → validar e assumir → confirmar solução. Prazos ilustrativos do serviço; dados fictícios.</p>
+            </div>
+            {barreiras.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-linha p-6 text-center text-sm text-tinta-suave">Nenhuma dificuldade relatada. No app do paciente, use “Preciso de ajuda” ou conte para a Lia.</p>
+            ) : barreiras.map(({ pendencia, paciente }) => (
+              <PendenciaItem key={pendencia.id} pendencia={pendencia} nomePaciente={paciente.nome} onAssumir={acoes.assumirPendencia} onConcluir={acoes.concluirPendencia} />
+            ))}
+          </section>
+        ) : subAba === 'pacientes' ? (
           <div>
             <div className="text-[11px] font-semibold text-tinta-suave uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <Filter className="w-3 h-3 text-verde" aria-hidden />

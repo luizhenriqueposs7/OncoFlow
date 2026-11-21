@@ -79,6 +79,7 @@ export const CONFIG_SERVICO: ConfigServico = {
     contato_equipe: 24,
     reagendamento: 48,
     duvida: 48,
+    barreira: 24,
   },
   papelPorTipo: {
     sinal_urgencia: 'enfermagem',
@@ -86,6 +87,7 @@ export const CONFIG_SERVICO: ConfigServico = {
     contato_equipe: 'enfermagem',
     reagendamento: 'navegacao',
     duvida: 'enfermagem',
+    barreira: 'navegacao',
   },
   regrasRevisao: [
     {

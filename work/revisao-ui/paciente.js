@@ -1,0 +1,31 @@
+async (page) => {
+  const base = 'http://127.0.0.1:3104';
+  const result = {};
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${base}/paciente`);
+  await page.getByRole('button', { name: 'Preferências de leitura e voz', exact: true }).click();
+  result.preferenceFocus = await page.evaluate(() => ({ focused: document.activeElement.getAttribute('aria-label'), insideDialog: !!document.activeElement.closest('[role="dialog"]') }));
+  await page.keyboard.press('Escape');
+  result.escapeClosesPreference = await page.getByRole('dialog').count() === 0;
+  if (await page.getByRole('dialog').count()) await page.getByRole('button', { name: 'Fechar', exact: true }).click();
+  await page.getByRole('button', { name: /Falar com a Lia/ }).click();
+  await page.getByRole('button', { name: 'Prefiro digitar', exact: true }).click();
+  await page.getByRole('textbox', { name: /Mensagem para a Lia/ }).fill('Quando é minha próxima consulta?');
+  await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+  await page.getByRole('button', { name: 'Sim, por favor', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Falar com a Lia', exact: true }).click();
+  result.voiceShown = await page.locator('.lia-spoken-response').allTextContents();
+  const state = await (await page.request.get(`${base}/api/paciente/inicio`, { headers: { authorization: 'Bearer demo-maria' } })).json();
+  result.lastMessages = state.conversa.slice(-3).map(m => ({ author: m.autor, text: m.texto }));
+  result.confirmationPosition = await page.getByRole('button', { name: 'Sim, por favor', exact: true }).boundingBox();
+  await page.screenshot({ path: 'work/revisao-ui/paciente-voz-resposta.png', fullPage: true });
+  await page.getByRole('button', { name: 'Agora não', exact: true }).click();
+  await page.getByRole('button', { name: 'Prefiro digitar', exact: true }).click();
+  await page.route('**/api/paciente/conversa', route => route.abort('failed'));
+  await page.getByRole('textbox', { name: /Mensagem para a Lia/ }).fill('Mensagem fictícia para testar falha de envio.');
+  await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'Não conseguimos concluir agora.' }).waitFor();
+  result.messageAfterFailedSend = await page.getByRole('textbox', { name: /Mensagem para a Lia/ }).inputValue();
+  await page.unroute('**/api/paciente/conversa');
+  return result;
+}

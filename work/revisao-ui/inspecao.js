@@ -1,0 +1,54 @@
+async (page) => {
+  const base = 'http://127.0.0.1:3104';
+  const result = { patient: {}, pro: {}, pageErrors: [] };
+  page.on('pageerror', e => result.pageErrors.push(e.message));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${base}/paciente`);
+  await page.getByRole('heading', { name: 'Olá, Maria.', exact: true }).waitFor();
+  await page.screenshot({ path: 'work/revisao-ui/paciente-inicio.png', fullPage: true });
+  result.patient.home = await page.locator('h1,h2,nav[aria-label="Atalhos"] button').allTextContents();
+  for (const [name, file] of [['Minha jornada', 'jornada'], ['Minha agenda', 'agenda'], ['Meus documentos', 'documentos'], ['Como estou?', 'checkin']]) {
+    await page.getByRole('button', { name, exact: true }).click();
+    await page.getByRole('heading', { name, exact: true }).waitFor();
+    await page.screenshot({ path: `work/revisao-ui/paciente-${file}.png`, fullPage: true });
+    result.patient[file] = { url: page.url(), buttons: await page.getByRole('button').allTextContents() };
+    await page.getByRole('button', { name: 'Voltar', exact: true }).click();
+  }
+  await page.getByRole('button', { name: 'Preferências de leitura e voz', exact: true }).click();
+  result.patient.preferencesFocus = await page.evaluate(() => ({ focus: document.activeElement.outerHTML.slice(0, 280), insideDialog: !!document.activeElement.closest('[role="dialog"]') }));
+  await page.keyboard.press('Escape');
+  result.patient.preferencesEscapeCloses = await page.getByRole('dialog').count() === 0;
+  if (await page.getByRole('dialog').count()) await page.getByRole('button', { name: 'Fechar', exact: true }).click();
+  await page.getByRole('button', { name: /Falar com a Lia/ }).click();
+  await page.screenshot({ path: 'work/revisao-ui/paciente-voz.png', fullPage: true });
+  result.patient.voiceReady = await page.getByRole('button', { name: 'Começar a falar', exact: true }).boundingBox();
+  await page.getByRole('button', { name: 'Prefiro digitar', exact: true }).click();
+  await page.getByRole('textbox', { name: /Mensagem para a Lia/ }).fill('Quando é minha próxima consulta?');
+  await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+  await page.getByText('Sua próxima consulta é', { exact: false }).waitFor();
+  await page.getByRole('button', { name: 'Falar com a Lia', exact: true }).click();
+  result.patient.voiceReply = await page.getByRole('button', { name: 'Começar a falar', exact: true }).boundingBox();
+  await page.screenshot({ path: 'work/revisao-ui/paciente-voz-resposta.png', fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(base);
+  await page.getByRole('button', { name: /Entrar como Dra. Camila/ }).click();
+  await page.getByRole('heading', { name: 'Pacientes em acompanhamento', exact: true }).waitFor();
+  await page.screenshot({ path: 'work/revisao-ui/pro-inicio.png', fullPage: true });
+  await page.getByRole('tab', { name: 'Jornada', exact: true }).focus();
+  await page.keyboard.press('ArrowRight');
+  result.pro.tabsAfterArrow = { focus: await page.locator(':focus').textContent(), selected: await page.getByRole('tab', { selected: true }).textContent() };
+  await page.locator('nav:visible').getByRole('button', { name: /Pendências/ }).click();
+  await page.getByRole('heading', { name: 'Pendências abertas', exact: true }).waitFor();
+  await page.screenshot({ path: 'work/revisao-ui/pro-pendencias.png', fullPage: true });
+  result.pro.pendingUrl = page.url();
+  await page.reload();
+  await page.getByRole('heading', { name: 'Pacientes em acompanhamento', exact: true }).waitFor();
+  result.pro.reloadReturnsHome = true;
+  await page.locator('nav:visible').getByRole('button', { name: 'Comunicação', exact: true }).click();
+  await page.getByRole('heading', { name: 'Conversas', exact: true }).waitFor();
+  await page.screenshot({ path: 'work/revisao-ui/pro-comunicacao.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('nav:visible').getByRole('button', { name: 'Início', exact: true }).click();
+  await page.screenshot({ path: 'work/revisao-ui/pro-celular.png', fullPage: true });
+  return result;
+}

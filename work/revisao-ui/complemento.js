@@ -1,0 +1,55 @@
+async (page) => {
+  const base = 'http://127.0.0.1:3104';
+  const result = { patient: {}, pro: {} };
+  result.patient.voiceShown = await page.locator('.lia-spoken-response').allTextContents();
+  const state = await (await page.request.get(`${base}/api/paciente/inicio`, { headers: { authorization: 'Bearer demo-maria' } })).json();
+  result.patient.voiceLastMessages = state.conversa.slice(-3).map(m => ({ author: m.autor, text: m.texto }));
+  result.patient.confirmationPosition = await page.getByRole('button', { name: 'Sim, por favor', exact: true }).boundingBox();
+  await page.screenshot({ path: 'work/revisao-ui/paciente-voz-resposta.png', fullPage: true });
+  await page.getByRole('button', { name: 'Agora não', exact: true }).click();
+  await page.getByRole('button', { name: 'Voltar', exact: true }).click();
+  await page.getByRole('button', { name: 'Preferências de leitura e voz', exact: true }).click();
+  result.patient.preferenceFocus = await page.evaluate(() => ({ focus: document.activeElement.outerHTML.slice(0, 180), insideDialog: !!document.activeElement.closest('[role="dialog"]') }));
+  await page.keyboard.press('Escape');
+  result.patient.escapeClosesPreference = await page.getByRole('dialog').count() === 0;
+  if (await page.getByRole('dialog').count()) await page.getByRole('button', { name: 'Fechar', exact: true }).click();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(base);
+  const login = page.getByRole('button', { name: /Entrar como Dra. Camila/ });
+  if (await login.count()) await login.click();
+  await page.getByRole('heading', { name: 'Pacientes em acompanhamento', exact: true }).waitFor();
+  await page.screenshot({ path: 'work/revisao-ui/pro-inicio.png', fullPage: true });
+  await page.getByRole('tab', { name: 'Jornada', exact: true }).focus();
+  await page.keyboard.press('ArrowRight');
+  result.pro.tabsAfterArrow = { focus: await page.locator(':focus').textContent(), selected: await page.getByRole('tab', { selected: true }).textContent() };
+  await page.locator('nav:visible').getByRole('button', { name: /Pendências/ }).click();
+  await page.getByRole('heading', { name: 'Pendências abertas', exact: true }).waitFor();
+  await page.screenshot({ path: 'work/revisao-ui/pro-pendencias.png', fullPage: true });
+  result.pro.pendingUrl = page.url();
+  await page.reload();
+  await page.getByRole('heading', { name: 'Pacientes em acompanhamento', exact: true }).waitFor();
+  result.pro.reloadReturnsHome = true;
+  await page.getByRole('button', { name: 'Ver plano terapêutico', exact: true }).click();
+  result.pro.planDialogRoleCount = await page.getByRole('dialog').count();
+  await page.keyboard.press('Escape');
+  result.pro.planEscapeCloses = !(await page.getByRole('heading', { name: 'Plano Terapêutico Vigente', exact: true }).isVisible());
+  if (!result.pro.planEscapeCloses) await page.getByRole('button', { name: 'Fechar', exact: true }).click();
+  await page.locator('nav:visible').getByRole('button', { name: 'Comunicação', exact: true }).click();
+  await page.getByRole('heading', { name: 'Conversas', exact: true }).waitFor();
+  await page.locator('#conversa-item-pac-maria').click();
+  await page.getByRole('textbox', { name: 'Mensagem para Maria Oliveira Costa', exact: true }).fill('Rascunho de teste destinado à Maria.');
+  await page.locator('#conversa-item-pac-001').click();
+  result.pro.draftForOtherPatient = await page.getByRole('textbox', { name: 'Mensagem para José Pereira da Silva', exact: true }).inputValue();
+  await page.screenshot({ path: 'work/revisao-ui/pro-rascunho-outro-paciente.png', fullPage: true });
+  await page.getByRole('textbox', { name: 'Mensagem para José Pereira da Silva', exact: true }).fill('');
+  result.pro.mobileOverflow = [];
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+    result.pro.mobileOverflow.push(await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth })));
+  }
+  await page.screenshot({ path: 'work/revisao-ui/pro-comunicacao-celular.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('nav:visible').getByRole('button', { name: 'Início', exact: true }).click();
+  await page.screenshot({ path: 'work/revisao-ui/pro-celular.png', fullPage: true });
+  return result;
+}

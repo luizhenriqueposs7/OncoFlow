@@ -29,6 +29,7 @@ const SELO: Record<StatusResultado, { rotulo: string; Icone: React.ElementType }
 };
 
 const SUGESTOES = [
+  'Não tenho transporte para chegar à minha próxima consulta.',
   'Quando é minha próxima consulta?',
   'Hoje estou muito cansada e preocupada com o trabalho.',
   'Quero falar com minha enfermeira.',

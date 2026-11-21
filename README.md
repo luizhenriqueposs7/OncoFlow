@@ -30,6 +30,18 @@ a Lia e o check-in funcionam por texto e pelos chips de sugestão.
 4. Equipe (Enf. Rodrigo): as pendências aparecem com origem, fala literal, prazo do serviço e
    responsável. **Entrar na conversa** e responder; o app da paciente mostra quem está atendendo.
 
+## Radar de barreiras — roteiro de 1 minuto
+
+1. No app do paciente, abra **Preciso de ajuda** → **Transporte** → **Revisar com a Lia** → **Enviar para navegação**. Também funciona falando ou digitando: “Não tenho transporte para chegar à minha próxima consulta.”
+2. No Pro, entre como **Carla Menezes** e abra **Radar de barreiras**. O relato aparece com categoria, compromisso, prazo e origem confirmada pelo paciente.
+3. Clique em **Validar e assumir**. Na tela inicial da paciente, o pedido muda para “Em acompanhamento pela navegação” e mostra a responsável.
+4. No Pro, preencha a solução fictícia: “Transporte confirmado com a paciente para a próxima consulta.” Clique em **Registrar solução**.
+5. Volte ao início da paciente: a solução assinada pela equipe está visível. A Lia não promete transporte nem altera a consulta.
+
+Fala para o pitch: “O OncoFlow conecta o relato à ação da equipe. Quando o transporte impede a próxima consulta, a navegação recebe, assume e acompanha até registrar uma solução que a paciente consegue ver.”
+
+O prazo de barreiras é ilustrativo e fica em `server/configServico.ts`. O radar usa o estado em memória da demo; reiniciar o servidor ou usar **Reiniciar demo** apaga os relatos adicionados. `npm test` verifica o ciclo e as confirmações.
+
 ## O que mudou em relação ao IRIS
 
 - A IA não responde mais sobre sintomas nem remédios. A Lia só informa o que está no sistema,

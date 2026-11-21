@@ -19,6 +19,7 @@ import {
   Sparkles,
   Users,
   Bell,
+  HandHeart,
 } from 'lucide-react';
 import type {
   Compromisso,
@@ -29,11 +30,12 @@ import type {
   SolicitacaoPaciente,
 } from '../types';
 import { ROTULO_OPCAO_CHECKIN } from '../types';
+import { CATEGORIAS_BARREIRA } from '../barreiras';
 import { AvisoUrgencia } from './AvisoUrgencia';
 import { OrbeLia } from './OrbeLia';
 import { dataCurta, diaDaSemana, diaEHora, porExtenso } from './formato';
 
-export type Tela = 'inicio' | 'jornada' | 'como-estou' | 'agenda' | 'documentos' | 'lia';
+export type Tela = 'inicio' | 'jornada' | 'como-estou' | 'agenda' | 'documentos' | 'lia' | 'barreiras';
 
 export const Cabecalho: React.FC<{ titulo: string; onVoltar: () => void; direita?: React.ReactNode }> = ({
   titulo,
@@ -88,6 +90,7 @@ export const TelaInicio: React.FC<{ inicio: InicioPaciente; irPara: (t: Tela) =>
     ['documentos', 'Meus documentos', FileText],
   ];
   const pedidosAbertos = inicio.solicitacoes.filter((s) => s.estado !== 'respondida');
+  const pedidosBarreira = inicio.solicitacoes.filter(s => s.tipo === 'barreira').slice(0, 3);
 
   return (
     <div className="flex flex-col gap-5 pb-28">
@@ -141,10 +144,33 @@ export const TelaInicio: React.FC<{ inicio: InicioPaciente; irPara: (t: Tela) =>
         ))}
       </nav>
 
-      {pedidosAbertos.length > 0 && (
+      <button type="button" onClick={() => irPara('barreiras')}
+        className="rounded-2xl border border-verde/30 bg-gelo p-4 flex items-center gap-3 text-left cursor-pointer">
+        <HandHeart className="w-7 h-7 text-verde shrink-0" aria-hidden />
+        <span className="flex-1"><span className="block font-bold">Preciso de ajuda</span>
+          <span className="block text-sm text-tinta-suave">Transporte, trabalho ou outra dificuldade para seguir sua jornada.</span></span>
+        <ChevronRight className="w-5 h-5 shrink-0" aria-hidden />
+      </button>
+
+      {pedidosBarreira.length > 0 && (
+        <section aria-label="Acompanhamento das dificuldades" className="space-y-3">
+          <h2 className="font-bold text-azul">Sua equipe está com você</h2>
+          {pedidosBarreira.map(s => (
+            <article key={s.id} className="rounded-xl border border-linha bg-white p-4 space-y-2">
+              <p className="font-bold">{s.categoriaBarreira ? CATEGORIAS_BARREIRA[s.categoriaBarreira].rotulo : s.titulo}</p>
+              <p className="text-sm text-tinta-suave">{s.etapa}</p>
+              <p className="text-sm font-semibold text-verde">{s.estado === 'respondida' ? 'Solução registrada pela equipe' : s.estado === 'com_a_equipe' ? 'Em acompanhamento pela navegação' : 'Pedido recebido · aguardando navegação'}</p>
+              {s.responsavel && <p className="text-sm">Responsável: {s.responsavel}</p>}
+              {s.solucao && <p className="text-sm rounded-lg bg-gelo p-3">{s.solucao}</p>}
+            </article>
+          ))}
+        </section>
+      )}
+
+      {pedidosAbertos.some(s => s.tipo !== 'barreira') && (
         <section aria-label="Meus pedidos" className="space-y-2">
           <h2 className="font-bold text-azul">Meus pedidos</h2>
-          {pedidosAbertos.map((s) => (
+          {pedidosAbertos.filter(s => s.tipo !== 'barreira').map((s) => (
             <div key={s.id} className="rounded-xl border border-linha bg-white p-3">
               <p className="font-semibold text-azul">{s.titulo}</p>
               <p className="text-sm text-tinta-suave flex items-center gap-1.5">

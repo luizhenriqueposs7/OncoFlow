@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { InicioPaciente, OpcaoCheckin } from '../types';
+import type { CategoriaBarreira } from '../barreiras';
 
 const SESSAO_DEMO = 'demo-maria';
 
@@ -52,7 +53,7 @@ export function usePaciente() {
         setErro(null);
         return resultado;
       } catch (e) {
-        setErro((e as Error).message);
+        setErro(e instanceof TypeError ? 'Sem conexão agora. Tente de novo em instantes.' : (e as Error).message);
         return null;
       } finally {
         setOcupado(false);
@@ -87,7 +88,17 @@ export function usePaciente() {
     [aplicar, comOcupado]
   );
 
-  return { inicio, erro, ocupado, enviar, responder, checkin };
+  const prepararBarreira = useCallback(
+    async (categoria: CategoriaBarreira, texto: string): Promise<boolean> => {
+      const resultado = await comOcupado(async () => {
+        aplicar(await chamar<InicioPaciente>('/api/paciente/barreiras/proposta', { categoria, texto }));
+        return true;
+      });
+      return resultado === true;
+    }, [aplicar, comOcupado]
+  );
+
+  return { inicio, erro, ocupado, enviar, responder, checkin, prepararBarreira };
 }
 
 export async function transcrever(audioBase64: string, mimeType: string): Promise<string | null> {

@@ -2,6 +2,8 @@
 // e OncoFlow Paciente. O servidor nunca envia `Paciente` inteiro ao app do paciente: ele monta
 // `InicioPaciente` com uma lista explícita de campos (server/visoes.ts).
 
+import type { CategoriaBarreira } from './barreiras';
+
 export type PapelEquipe = 'medico' | 'enfermagem' | 'navegacao';
 
 export interface UsuarioEquipe {
@@ -121,18 +123,20 @@ export type TipoPendencia =
   | 'checkin'
   | 'contato_equipe'
   | 'reagendamento'
+  | 'barreira'
   | 'duvida';
 
 export type OrigemPendencia = 'hipotese_sistema' | 'solicitacao_paciente' | 'regra_servico';
 
 export type EstadoPendencia = 'aberta' | 'em_andamento' | 'concluida';
 
-export type Desfecho = 'sem_acao_necessaria' | 'contato_realizado' | 'encaminhado';
+export type Desfecho = 'sem_acao_necessaria' | 'contato_realizado' | 'encaminhado' | 'barreira_resolvida';
 
 export const ROTULO_DESFECHO: Record<Desfecho, string> = {
   sem_acao_necessaria: 'Sem ação necessária',
   contato_realizado: 'Contato realizado',
   encaminhado: 'Encaminhado',
+  barreira_resolvida: 'Barreira resolvida',
 };
 
 export interface Pendencia {
@@ -152,6 +156,13 @@ export interface Pendencia {
   desfecho?: Desfecho;
   concluidaEm?: string;
   concluidaPor?: string;
+  barreira?: {
+    categoria: CategoriaBarreira;
+    etapa: string;
+    compromisso?: string;
+    dataHora?: string;
+  };
+  solucao?: string; // Texto do profissional, compartilhado explicitamente com o paciente.
 }
 
 // Situação operacional derivada das pendências abertas. Não é prioridade clínica: quem define
@@ -218,6 +229,11 @@ export interface SolicitacaoPaciente {
   titulo: string;
   estado: EstadoSolicitacaoPaciente;
   criadaEm: string;
+  tipo?: TipoPendencia;
+  categoriaBarreira?: CategoriaBarreira;
+  etapa?: string;
+  responsavel?: string;
+  solucao?: string;
 }
 
 export interface AvisoUrgencia {

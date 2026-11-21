@@ -11,6 +11,7 @@
 
 import type { Compromisso, OpcaoCheckin, Paciente, StatusResultado } from '../src/types';
 import { ROTULO_OPCAO_CHECKIN } from '../src/types';
+import { CATEGORIAS_BARREIRA, categoriaBarreiraValida, type CategoriaBarreira } from '../src/barreiras';
 import { CONFIG_SERVICO } from './configServico';
 import {
   adicionarMensagem,
@@ -148,11 +149,11 @@ function responderComoLia(paciente: Paciente, texto: string, origem: 'texto' | '
 
   const pendente = propostaDe(paciente.id);
   if (pendente) {
-    if (/^(sim|pode|pode sim|confirmo|confirmar|isso|isso mesmo|claro|ok|quero|por favor|pode ser)\b/.test(t)) {
+    if (/^(sim|pode|pode sim|confirmo|confirmar|isso|isso mesmo|claro|ok|quero|por favor|pode ser)[.!?,\s]*$/.test(t)) {
       responderProposta(paciente.id, pendente.token, true);
       return;
     }
-    if (/^(nao|agora nao|cancela|cancelar|deixa|nao precisa)\b/.test(t)) {
+    if (/^(nao|agora nao|cancela|cancelar|deixa|nao precisa)[.!?,\s]*$/.test(t)) {
       responderProposta(paciente.id, pendente.token, false);
       return;
     }
@@ -161,6 +162,8 @@ function responderComoLia(paciente: Paciente, texto: string, origem: 'texto' | '
 
   const intencao = classificar(t);
   switch (intencao.tipo) {
+    case 'barreira':
+      return propostaBarreira(paciente, intencao.categoria, texto);
     case 'duvida_clinica':
       return duvidaClinica(paciente, texto);
     case 'contato':
@@ -205,6 +208,7 @@ function responderComoLia(paciente: Paciente, texto: string, origem: 'texto' | '
 // ---------------------------------------------------------------------------
 
 type Intencao =
+  | { tipo: 'barreira'; categoria: CategoriaBarreira }
   | { tipo: 'duvida_clinica' | 'contato' | 'reagendamento' | 'lembrete' | 'checkin_iniciar' }
   | { tipo: 'checkin_texto'; opcoes: OpcaoCheckin[] }
   | { tipo: 'preparo' | 'documentos' | 'agenda' | 'jornada' | 'saudacao' | 'agradecimento' | 'desconhecida' };
@@ -267,6 +271,8 @@ export function classificar(t: string): Intencao {
   ) {
     return { tipo: 'contato' };
   }
+  const categoria = identificarBarreira(t);
+  if (categoria) return { tipo: 'barreira', categoria };
   if (
     contemExpressao(t, [
       'nao posso ir',
@@ -438,6 +444,43 @@ function consultarPreparo(paciente: Paciente, t: string): void {
 // Organizar e encaminhar (propostas confirmadas pelo paciente)
 // ---------------------------------------------------------------------------
 
+function identificarBarreira(t: string): CategoriaBarreira | undefined {
+  const termos: [CategoriaBarreira, string[]][] = [
+    ['transporte', ['nao tenho transporte', 'sem transporte', 'nao tenho como chegar', 'nao tenho como ir', 'nao consigo transporte', 'dificuldade com transporte', 'nao tenho dinheiro para a passagem', 'nao tenho dinheiro para passagem']],
+    ['trabalho', ['nao consigo liberacao do trabalho', 'nao consigo sair do trabalho', 'nao posso sair do trabalho', 'nao me liberam do trabalho', 'trabalho nao me libera', 'dificuldade com o trabalho']],
+    ['documentacao', ['sem os documentos', 'sem documentos', 'falta de documentos', 'faltam documentos', 'nao tenho os documentos', 'problema com a autorizacao', 'aguardando autorizacao']],
+    ['agendamento', ['nao consigo agendar', 'nao consigo marcar', 'dificuldade para agendar', 'dificuldade para marcar', 'sem vaga para', 'nao encontro vaga']],
+    ['acompanhante', ['nao tenho acompanhante', 'sem acompanhante', 'nao tenho quem me acompanhe', 'ninguem pode me acompanhar']],
+    ['outro', ['preciso de ajuda para seguir minha proxima etapa', 'dificuldade para seguir minha jornada']],
+  ];
+  return termos.find(([, expressoes]) => contemExpressao(t, expressoes))?.[0];
+}
+
+export function propostaBarreira(paciente: Paciente, categoria: CategoriaBarreira, texto: string): void {
+  if (!categoriaBarreiraValida(categoria) || !texto.trim() || texto.trim().length > 1000) {
+    throw new ErroDominio(400, 'barreira_invalida', 'Escolha uma dificuldade e conte o que aconteceu (até 1.000 caracteres).');
+  }
+  const t = normalizar(texto);
+  const tipoCompromisso = contemExpressao(t, ['consulta*']) ? 'consulta' : contemExpressao(t, ['exame*']) ? 'exame' : undefined;
+  const compromisso = proximo(paciente, tipoCompromisso) ?? proximo(paciente);
+  const etapa = paciente.jornada.find(e => e.estado === 'proxima' || e.estado === 'aguardando')
+    ?? paciente.jornada.find(e => e.estado === 'em_andamento');
+  const barreira = {
+    categoria,
+    etapa: compromisso?.titulo ?? etapa?.titulo ?? 'Próxima etapa do cuidado',
+    compromisso: compromisso?.titulo,
+    dataHora: compromisso?.dataHora,
+  };
+  definirProposta(paciente, {
+    acao: 'barreira',
+    resumo: `${CATEGORIAS_BARREIRA[categoria].rotulo} · ${barreira.etapa} · Seu relato: “${texto.trim()}”`,
+    rotuloConfirmar: 'Enviar para navegação',
+    rotuloRecusar: 'Agora não',
+    dados: { texto: texto.trim(), barreira },
+  });
+  falar(paciente, `Entendi que você precisa de ajuda com ${CATEGORIAS_BARREIRA[categoria].rotulo.toLowerCase()}. Posso registrar seu relato para a equipe de navegação analisar com você?`);
+}
+
 function duvidaClinica(paciente: Paciente, texto: string): void {
   definirProposta(paciente, {
     acao: 'duvida',
@@ -556,6 +599,20 @@ function executar(paciente: Paciente, proposta: PropostaInterna): void {
   const dados = proposta.dados;
   const texto = typeof dados.texto === 'string' ? dados.texto : undefined;
   switch (proposta.acao) {
+    case 'barreira': {
+      const barreira = dados.barreira as NonNullable<import('../src/types').Pendencia['barreira']>;
+      criarPendencia(paciente, {
+        tipo: 'barreira',
+        origem: 'solicitacao_paciente',
+        titulo: `Ajuda com ${CATEGORIAS_BARREIRA[barreira.categoria].rotulo.toLowerCase()}`,
+        falaLiteral: texto,
+        confirmadaPeloPaciente: true,
+        barreira,
+        motivo: 'Relato e categoria confirmados pelo paciente · aguardando validação da navegação.',
+      });
+      falar(paciente, 'Registrei sua dificuldade para a equipe de navegação. Você pode acompanhar o pedido na tela inicial. A equipe vai analisar com você como ajudar.', { status: 'registrado' });
+      return;
+    }
     case 'lembrete': {
       const compromisso = paciente.agenda.find((c) => c.id === dados.compromissoId);
       if (compromisso) executarLembrete(paciente, compromisso);

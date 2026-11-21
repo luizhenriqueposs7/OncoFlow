@@ -29,7 +29,7 @@ interface PacienteCardProps {
   onVerPlanoTerapeutico: (paciente: PacientePro) => void;
   onPlanoAtualizado: (pacienteId: string, novoTexto: string, dataHoraAtualizada: string) => void;
   onAssumirPendencia: (id: string) => void;
-  onConcluirPendencia: (id: string, desfecho: Desfecho) => void;
+  onConcluirPendencia: (id: string, desfecho: Desfecho, solucao?: string) => void;
 }
 
 function dataHora(iso: string): string {

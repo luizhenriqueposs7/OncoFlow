@@ -32,6 +32,7 @@ export class ErroDominio extends Error {
 
 export type AcaoProposta =
   | 'reagendamento'
+  | 'barreira'
   | 'contato_equipe'
   | 'duvida'
   | 'relato_urgencia'
@@ -282,10 +283,28 @@ export function assumirPendencia(id: string, usuario: UsuarioEquipe): void {
   mudou();
 }
 
-export function concluirPendencia(id: string, usuario: UsuarioEquipe, desfecho: Desfecho): void {
+export function concluirPendencia(id: string, usuario: UsuarioEquipe, desfecho: Desfecho, solucao?: string): void {
   const pendencia = obterPendencia(id);
   if (pendencia.estado === 'concluida') {
     throw new ErroDominio(409, 'pendencia_concluida', 'Esta pendência já foi concluída.');
+  }
+  if (pendencia.tipo === 'barreira') {
+    if (pendencia.estado !== 'em_andamento' || !pendencia.responsavel) {
+      throw new ErroDominio(409, 'barreira_nao_assumida', 'Assuma a barreira antes de registrar a solução.');
+    }
+    if (desfecho !== 'barreira_resolvida' || !solucao?.trim() || solucao.trim().length > 1000) {
+      throw new ErroDominio(400, 'solucao_obrigatoria', 'Descreva a solução confirmada com o paciente (até 1.000 caracteres).');
+    }
+    pendencia.solucao = solucao.trim();
+    adicionarMensagem(obterPaciente(pendencia.pacienteId), {
+      autor: 'profissional',
+      nomeAutor: usuario.nome,
+      texto: `Sobre seu pedido de ajuda: ${pendencia.solucao}`,
+      status: 'confirmado',
+      visivelPaciente: true,
+    });
+  } else if (desfecho === 'barreira_resolvida') {
+    throw new ErroDominio(400, 'desfecho_invalido', 'Escolha o desfecho da revisão.');
   }
   pendencia.estado = 'concluida';
   pendencia.responsavel = pendencia.responsavel ?? usuario.nome;

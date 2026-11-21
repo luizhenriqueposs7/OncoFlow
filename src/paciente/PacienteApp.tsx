@@ -7,6 +7,7 @@ import { transcrever, usePaciente } from './api';
 import { useFala, useGravador } from './voz';
 import { TelaAgenda, TelaComoEstou, TelaDocumentos, TelaInicio, TelaJornada, type Tela } from './telas';
 import { TelaLia } from './TelaLia';
+import { TelaBarreiras } from './TelaBarreiras';
 
 type TamanhoFonte = 'normal' | 'grande' | 'muito-grande';
 
@@ -30,7 +31,7 @@ function lerPreferencias(): Preferencias {
 }
 
 export default function PacienteApp() {
-  const { inicio, erro, ocupado, enviar, responder, checkin } = usePaciente();
+  const { inicio, erro, ocupado, enviar, responder, checkin, prepararBarreira } = usePaciente();
   const gravador = useGravador();
   const fala = useFala();
   const [tela, setTela] = useState<Tela>('inicio');
@@ -112,6 +113,12 @@ export default function PacienteApp() {
           <p className="py-10 text-center text-tinta-suave">Carregando…</p>
         ) : tela === 'inicio' ? (
           <TelaInicio inicio={inicio} irPara={irPara} onPreferencias={() => setPrefsAbertas(true)} />
+        ) : tela === 'barreiras' ? (
+          <TelaBarreiras ocupado={ocupado} onVoltar={() => irPara('inicio')} onPreparar={async (categoria, texto) => {
+            const ok = await prepararBarreira(categoria, texto);
+            if (ok) irPara('lia');
+            return ok;
+          }} />
         ) : tela === 'jornada' ? (
           <TelaJornada inicio={inicio} onVoltar={() => irPara('inicio')} />
         ) : tela === 'agenda' ? (

@@ -1,5 +1,6 @@
 async (page) => {
   const result = {};
+  await page.request.post('http://127.0.0.1:3103/api/demo/reset');
   let sent = 0;
   let transcribed = 0;
   page.on('request', request => {
@@ -83,6 +84,6 @@ async (page) => {
   result.confirmationPreserved = true;
   if (sent !== 1 || transcribed !== 1) throw new Error('Unexpected message/transcription count');
   result.calls = { messages: sent, transcriptions: transcribed, providerCalls: 0, physicalMicrophone: false };
-  await page.evaluate(() => { speechSynthesis.cancel(); window.__liaTest.contexts.forEach(context => context.close()); });
+  await page.evaluate(() => { speechSynthesis.cancel(); window.__liaTest.contexts.filter(context => context.state !== 'closed').forEach(context => context.close()); });
   return result;
 }

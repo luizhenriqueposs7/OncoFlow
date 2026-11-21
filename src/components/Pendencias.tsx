@@ -20,6 +20,7 @@ import type {
   TipoPendencia,
 } from '../types';
 import { ROTULO_DESFECHO } from '../types';
+import { CATEGORIAS_BARREIRA } from '../barreiras';
 
 export const ROTULO_TIPO: Record<TipoPendencia, string> = {
   sinal_urgencia: 'Possível sinal de urgência',
@@ -27,6 +28,7 @@ export const ROTULO_TIPO: Record<TipoPendencia, string> = {
   contato_equipe: 'Pedido de contato',
   reagendamento: 'Reagendamento',
   duvida: 'Dúvida do paciente',
+  barreira: 'Barreira na jornada',
 };
 
 export const ROTULO_PAPEL: Record<PapelEquipe, string> = {
@@ -98,11 +100,12 @@ interface PendenciaItemProps {
   pendencia: Pendencia;
   nomePaciente?: string;
   onAssumir: (id: string) => void;
-  onConcluir: (id: string, desfecho: Desfecho) => void;
+  onConcluir: (id: string, desfecho: Desfecho, solucao?: string) => void;
 }
 
 export const PendenciaItem: React.FC<PendenciaItemProps> = ({ pendencia, nomePaciente, onAssumir, onConcluir }) => {
   const [desfecho, setDesfecho] = useState<Desfecho | ''>('');
+  const [solucao, setSolucao] = useState('');
   const concluida = pendencia.estado === 'concluida';
   const prazo = descreverPrazo(pendencia.prazo);
   const ehHipotese = pendencia.origem === 'hipotese_sistema';
@@ -145,7 +148,15 @@ export const PendenciaItem: React.FC<PendenciaItemProps> = ({ pendencia, nomePac
         </blockquote>
       )}
 
-      {pendencia.motivo && <p className="text-tinta-suave">{pendencia.motivo}</p>}
+      {pendencia.barreira && (
+        <div className="rounded-lg bg-gelo p-3 space-y-1 text-azul">
+          <p className="font-bold">{CATEGORIAS_BARREIRA[pendencia.barreira.categoria].rotulo} · {pendencia.estado === 'concluida' ? 'Resolvida' : pendencia.estado === 'em_andamento' ? 'Em acompanhamento' : 'Aguardando validação'}</p>
+          <p>Etapa relacionada: <strong>{pendencia.barreira.etapa}</strong></p>
+          {pendencia.barreira.compromisso && <p>Próximo compromisso: {pendencia.barreira.compromisso}{pendencia.barreira.dataHora ? ` · ${quando(pendencia.barreira.dataHora)}` : ''}</p>}
+          {pendencia.solucao && <p className="pt-1"><strong>Solução registrada:</strong> {pendencia.solucao}</p>}
+        </div>
+      )}
+      {pendencia.motivo && <p className="text-tinta-suave">{pendencia.tipo === 'barreira' && pendencia.estado !== 'aberta' ? 'Relato validado pela navegação.' : pendencia.motivo}</p>}
       {pendencia.tipo === 'sinal_urgencia' && (
         <p className="text-tinta-suave">
           {pendencia.confirmadaPeloPaciente
@@ -174,6 +185,25 @@ export const PendenciaItem: React.FC<PendenciaItemProps> = ({ pendencia, nomePac
           Revisado por {pendencia.concluidaPor} em {quando(pendencia.concluidaEm!)} ·{' '}
           {pendencia.desfecho ? ROTULO_DESFECHO[pendencia.desfecho] : ''}
         </div>
+      ) : pendencia.tipo === 'barreira' ? (
+        <div className="space-y-3 pt-1">
+          {pendencia.estado === 'aberta' ? (
+            <button type="button" onClick={() => onAssumir(pendencia.id)}
+              className="inline-flex items-center gap-2 min-h-10 px-3 py-2 rounded-lg bg-verde text-white font-semibold cursor-pointer">
+              <UserCheck className="w-4 h-4" aria-hidden />Validar e assumir
+            </button>
+          ) : (
+            <>
+              <label className="block font-semibold text-azul" htmlFor={`solucao-${pendencia.id}`}>Solução confirmada com o paciente</label>
+              <textarea id={`solucao-${pendencia.id}`} value={solucao} onChange={e => setSolucao(e.target.value)} rows={3} maxLength={1000}
+                placeholder="Descreva o que foi combinado. Este texto será mostrado ao paciente."
+                className="w-full rounded-lg border border-linha bg-white p-3 text-azul focus:ring-2 focus:ring-verde" />
+              <p className="text-tinta-suave">Conclua após confirmar a solução. Um encaminhamento ainda precisa de acompanhamento.</p>
+              <button type="button" disabled={!solucao.trim()} onClick={() => onConcluir(pendencia.id, 'barreira_resolvida', solucao)}
+                className="min-h-10 px-3 py-2 rounded-lg bg-verde text-white font-semibold disabled:opacity-40 cursor-pointer">Registrar solução</button>
+            </>
+          )}
+        </div>
       ) : (
         <div className="flex flex-wrap items-center gap-2 pt-1">
           {pendencia.estado === 'aberta' && (
@@ -196,7 +226,7 @@ export const PendenciaItem: React.FC<PendenciaItemProps> = ({ pendencia, nomePac
             className="px-2 py-1.5 rounded-lg border border-linha bg-white text-azul"
           >
             <option value="">Desfecho da revisão…</option>
-            {(Object.keys(ROTULO_DESFECHO) as Desfecho[]).map((d) => (
+            {(Object.keys(ROTULO_DESFECHO) as Desfecho[]).filter(d => d !== 'barreira_resolvida').map((d) => (
               <option key={d} value={d}>
                 {ROTULO_DESFECHO[d]}
               </option>

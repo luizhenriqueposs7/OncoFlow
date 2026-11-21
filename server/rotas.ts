@@ -5,6 +5,7 @@
 
 import express, { type NextFunction, type Request, type Response } from 'express';
 import type { Desfecho, OpcaoCheckin, UsuarioEquipe } from '../src/types';
+import { categoriaBarreiraValida } from '../src/barreiras';
 import {
   assumirConversa,
   assumirPendencia,
@@ -19,12 +20,13 @@ import {
   resetar,
   usuarioPorId,
 } from './estado';
-import { mensagemDoPaciente, responderProposta } from './lia';
+import { mensagemDoPaciente, responderProposta, propostaBarreira } from './lia';
+import { detectarUrgencia } from './urgencia';
 import { USUARIOS_EQUIPE } from './seed';
 import { visaoPaciente, visaoPro } from './visoes';
 
 const OPCOES_VALIDAS: OpcaoCheckin[] = ['bem', 'cansaco', 'dor', 'nausea', 'ansiedade', 'outro'];
-const DESFECHOS_VALIDOS: Desfecho[] = ['sem_acao_necessaria', 'contato_realizado', 'encaminhado'];
+const DESFECHOS_VALIDOS: Desfecho[] = ['sem_acao_necessaria', 'contato_realizado', 'encaminhado', 'barreira_resolvida'];
 
 type Handler = (req: Request, res: Response) => void;
 
@@ -129,12 +131,30 @@ export function criarRotas(): express.Router {
       if (!DESFECHOS_VALIDOS.includes(desfecho)) {
         throw new ErroDominio(400, 'desfecho_invalido', 'Escolha o desfecho da revisão.');
       }
-      concluirPendencia(req.params.id, usuarioDa(req), desfecho);
+      concluirPendencia(req.params.id, usuarioDa(req), desfecho, typeof req.body?.solucao === 'string' ? req.body.solucao : undefined);
       res.json({ ok: true });
     })
   );
 
   // OncoFlow Paciente (o paciente vem da sessão, nunca da URL)
+  r.post('/api/paciente/barreiras/proposta', rota((req, res) => {
+    const paciente = pacienteDa(req);
+    const categoria = req.body?.categoria;
+    const texto = textoDo(req).trim();
+    if (!categoriaBarreiraValida(categoria) || !texto || texto.length > 1000) {
+      throw new ErroDominio(400, 'barreira_invalida', 'Escolha uma dificuldade e conte o que aconteceu (até 1.000 caracteres).');
+    }
+    if (detectarUrgencia(texto)) {
+      mensagemDoPaciente(paciente.id, texto, 'texto');
+      res.json(visaoPaciente(paciente));
+      return;
+    }
+    if (paciente.modoConversa === 'profissional') {
+      throw new ErroDominio(409, 'conversa_com_equipe', 'Sua equipe está na conversa. Conte sua dificuldade diretamente para ela.');
+    }
+    propostaBarreira(paciente, categoria, texto);
+    res.json(visaoPaciente(paciente));
+  }));
   r.get(
     '/api/paciente/inicio',
     rota((req, res) => {
